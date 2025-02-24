@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Manage Users</title>
+    <!---<link rel="stylesheet" href="styles.css"> --> <!-- Link to external stylesheet -->
+    <style>
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <h1>Admin - Add User</h1>
+    <form id="add-user-form">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+        
+        <label for="email">Email:</label>
+        <input type="email" id="email" required>
+        
+        <button type="submit">Add User</button>
+    </form>
+
+    <h1>All Users</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="users-table-body">
+            <!-- Users will be loaded here dynamically -->
+        </tbody>
+    </table>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+            authDomain: "system-galacticgeeks.firebaseapp.com",
+            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "system-galacticgeeks",
+            storageBucket: "system-galacticgeeks.firebasestorage.app",
+            messagingSenderId: "835850762785",
+            appId: "1:835850762785:web:d2e42efe2422dac089c160",
+            measurementId: "G-5S4L5M5GG5"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        document.getElementById('add-user-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            
+            const newUserRef = db.ref('users').push();
+            newUserRef.set({
+                username: username,
+                email: email
+            })
+            .then(() => {
+                alert('User added successfully!');
+                document.getElementById('add-user-form').reset();
+            })
+            .catch(error => {
+                console.error('Error adding user:', error);
+                alert('Failed to add user. Check console for details.');
+            });
+        });
+
+        function loadUsers() {
+            const usersRef = db.ref('users');
+            usersRef.on('value', snapshot => {
+                const users = snapshot.val() || {};
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = '';
+                
+                for (const userId in users) {
+                    if (users.hasOwnProperty(userId)) {
+                        const user = users[userId];
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${user.username}</td>
+                            <td>${user.email}</td>
+                            <td>
+                                <button onclick="deleteUser('${userId}')">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+                }
+            });
+        }
+
+        function deleteUser(userId) {
+            db.ref(`users/${userId}`).remove()
+            .then(() => alert('User deleted successfully!'))
+            .catch(error => console.error('Error deleting user:', error));
+        }
+
+        loadUsers();
+    </script>
+</body>
+</html>

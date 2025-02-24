@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Resource</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to external stylesheet -->
+    <style>
+        #resource-form{
+            color: white;
+            font-size: 20px;
+        }
+
+        .resourceForumCenteringDiv {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-top: 10vh;
+        }
+
+        .resourceForumDivGeneral{
+            align-items: center;
+            justify-content: center;
+            width: 65%;
+            margin: 0 auto;
+        }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div class="resourceForumCenteringDiv">
+    <div class="resourceForumDivGeneral">
+    <h1 style="color: white; margin-bottom: 4vh;">Create a New Resource</h1>
+    <form id="resource-form">
+        <label  for="resource-name">Resource Name:</label>
+        <input type="text" id="resource-name" required>
+
+        <label for="resource-details">Resource Details:</label>
+        <input type="text" id="resource-details" required>
+
+        <label for="additional-details">Additional Details:</label>
+        <input type="text" id="additional-details">
+
+        <button type="submit">Add Resource</button>
+    </form>
+</div>
+</div>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+            authDomain: "system-galacticgeeks.firebaseapp.com",
+            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "system-galacticgeeks",
+            storageBucket: "system-galacticgeeks.firebasestorage.app",
+            messagingSenderId: "835850762785",
+            appId: "1:835850762785:web:d2e42efe2422dac089c160",
+            measurementId: "G-5S4L5M5GG5"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        document.getElementById('resource-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const resourceName = document.getElementById('resource-name').value;
+            const resourceDetails = document.getElementById('resource-details').value;
+            const additionalDetails = document.getElementById('additional-details').value;
+            
+            const newResourceRef = db.ref('resources').push();
+            newResourceRef.set({
+                name: resourceName,
+                details: resourceDetails,
+                additional: additionalDetails
+            })
+            .then(() => {
+                alert('Resource added successfully!');
+                window.location.href = 'admin_dashboard.html'; // Redirect to dashboard
+            })
+            .catch(error => {
+                console.error('Error adding resource:', error);
+                alert('Failed to add resource. Check console for details.');
+            });
+        });
+    </script>
+</body>
+</html>
+<!--- test-->
