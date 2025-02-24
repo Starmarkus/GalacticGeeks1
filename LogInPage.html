@@ -43,16 +43,12 @@
 
     <div id="notification" class="notification"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js"></script>
-
     <script type="module">
-        // Import necessary Firebase modules
+        // Import Firebase modules
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
         import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
-        
+
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
@@ -70,67 +66,48 @@
         const auth = getAuth(app);
         const database = getDatabase(app);
 
-        // Hashing function (SHA-256) to compare passwords
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-            return hashHex;
-        }
 
         // Sign-in function
         async function signInUser(email, password) {
-            try {
-                // Retrieve user data from Firebase Database
-                const userRef = ref(database, 'users/');
-                const snapshot = await get(userRef);
-                
-                if (snapshot.exists()) {
-                    let user = null;
-                    snapshot.forEach(childSnapshot => {
-                        const userData = childSnapshot.val();
-                        if (userData.email === email) {
-                            user = userData;
-                        }
-                    });
+    try {
+        // Sign in with Firebase Authentication
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-                    if (user) {
-                        // Hash the password entered by the user
-                        const hashedPassword = await hashPassword(password);
+        // Retrieve user role from Firebase Database
+        const userRef = ref(database, 'users/' + user.uid);
+        const snapshot = await get(userRef);
 
-                        // Compare the entered password with the stored hashed password
-                        if (hashedPassword === user.password) {
-                            // Password matches
-                            console.log("User logged in successfully:", user);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const role = userData.role || "user"; // Default role: user
 
-                            // Redirect to the UserDashboardPage.html after successful login
-                            window.location.href = "UserDashboardPage.html"; // Redirect to the dashboard page
-                        } else {
-                            showNotification("Error: Invalid email or password.", true);
-                        }
-                    } else {
-                        showNotification("Error: User not found.", true);
-                    }
+            showNotification("Login successful!", false); // Show success notification
+            
+            // Delay redirection to allow notification to be seen
+            setTimeout(() => {
+                if (role === "admin") {
+                    window.location.href = "AdminDashboardPage.html";
                 } else {
-                    showNotification("Error: No users found in the database.", true);
+                    window.location.href = "UserDashboardPage.html";
                 }
+            }, 2000); // 2 seconds delay
 
-            } catch (error) {
-                console.error("Login error:", error.message);
-                showNotification("Error: " + error.message, true); // Show error notification if login fails
-            }
+        } else {
+            showNotification("Error: User data not found.", true);
         }
+    } catch (error) {
+        console.error("Login error:", error.message);
+        showNotification("Error: " + error.message, true);
+    }
+}
+
 
         // Handle login form submission
         document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault(); // Prevent page reload on form submission
-
+            event.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-
-            // Call the signInUser function
             signInUser(email, password);
         });
 

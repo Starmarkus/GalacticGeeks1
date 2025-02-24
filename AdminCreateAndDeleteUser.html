@@ -6,19 +6,33 @@
     <title>Admin - Manage Users</title>
     <!---<link rel="stylesheet" href="styles.css"> --> <!-- Link to external stylesheet -->
     <style>
+        /* Add your CSS styles here */
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
     <h1>Admin - Add User</h1>
     <form id="add-user-form">
-        <label for="username">Username:</label>
-        <input type="text" id="username" required>
-        
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" required>
+
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" required>
+
         <label for="email">Email:</label>
         <input type="email" id="email" required>
-        
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+
+        <label for="role">Role:</label>
+        <select id="role" required>
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select>
+
         <button type="submit">Add User</button>
     </form>
 
@@ -26,8 +40,10 @@
     <table>
         <thead>
             <tr>
-                <th>Username</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -43,7 +59,7 @@
             authDomain: "system-galacticgeeks.firebaseapp.com",
             databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
             projectId: "system-galacticgeeks",
-            storageBucket: "system-galacticgeeks.firebasestorage.app",
+            storageBucket: "system-galacticgeeks.appspot.com",
             messagingSenderId: "835850762785",
             appId: "1:835850762785:web:d2e42efe2422dac089c160",
             measurementId: "G-5S4L5M5GG5"
@@ -51,27 +67,46 @@
 
         // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(); // Firebase Authentication
         const db = firebase.database();
 
         document.getElementById('add-user-form').addEventListener('submit', function(event) {
             event.preventDefault();
-            
-            const username = document.getElementById('username').value;
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
             const email = document.getElementById('email').value;
-            
-            const newUserRef = db.ref('users').push();
-            newUserRef.set({
-                username: username,
-                email: email
-            })
-            .then(() => {
-                alert('User added successfully!');
-                document.getElementById('add-user-form').reset();
-            })
-            .catch(error => {
-                console.error('Error adding user:', error);
-                alert('Failed to add user. Check console for details.');
-            });
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            // Create the user in Firebase Authentication
+            auth.createUserWithEmailAndPassword(email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    const userId = user.uid;
+
+                    // Add user details to Firebase Database
+                    const newUserRef = db.ref('users').push();
+                    newUserRef.set({
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: email,
+                        role: role,
+                        uid: userId
+                    })
+                    .then(() => {
+                        alert('User added successfully!');
+                        document.getElementById('add-user-form').reset();
+                    })
+                    .catch(error => {
+                        console.error('Error adding user:', error);
+                        alert('Failed to add user to database.');
+                    });
+                })
+                .catch(error => {
+                    console.error('Error creating user:', error);
+                    alert('Failed to create user. Check console for details.');
+                });
         });
 
         function loadUsers() {
@@ -80,16 +115,18 @@
                 const users = snapshot.val() || {};
                 const tbody = document.getElementById('users-table-body');
                 tbody.innerHTML = '';
-                
+
                 for (const userId in users) {
                     if (users.hasOwnProperty(userId)) {
                         const user = users[userId];
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${user.username}</td>
+                            <td>${user.firstName}</td> <!-- Display first name -->
+                            <td>${user.lastName}</td> <!-- Display last name -->
                             <td>${user.email}</td>
+                            <td>${user.role}</td> <!-- Display role -->
                             <td>
-                                <button onclick="deleteUser('${userId}')">Delete</button>
+                                <button onclick="deleteUser('${userId}', '${user.uid}')">Delete</button>
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -98,10 +135,22 @@
             });
         }
 
-        function deleteUser(userId) {
-            db.ref(`users/${userId}`).remove()
-            .then(() => alert('User deleted successfully!'))
-            .catch(error => console.error('Error deleting user:', error));
+        function deleteUser(userId, uid) {
+            // Delete the user from Firebase Authentication
+            auth.getUser(uid)
+                .then(userRecord => {
+                    return userRecord.delete();
+                })
+                .then(() => {
+                    // Remove user from the database
+                    db.ref(`users/${userId}`).remove()
+                    .then(() => alert('User deleted successfully!'))
+                    .catch(error => console.error('Error deleting user from database:', error));
+                })
+                .catch(error => {
+                    console.error('Error deleting user from Firebase Authentication:', error);
+                    alert('Failed to delete user from authentication system.');
+                });
         }
 
         loadUsers();

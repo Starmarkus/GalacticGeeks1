@@ -44,12 +44,8 @@
 
 <div id="notification" class="notification"></div>
 
-<script type="module" src="https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js"></script>
-<script type="module" src="https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js"></script>
-<script type="module" src="https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js"></script>
-
 <script type="module">
-    // Import Firebase modules as needed
+    // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
     import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
     import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
@@ -85,38 +81,24 @@
         }, 5000);
     }
 
-    // Hashing the password using the Web Crypto API
-    async function hashPassword(password) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(password);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map(byte => byte.toString(16).padStart(2, '0')).join('');
-        return hashHex;
-    }
-
     // Sign-up function
     async function signUpUser(firstName, lastName, email, password) {
         try {
-            // Hash the password
-            const hashedPassword = await hashPassword(password);
-
-            // Create user with email and hashed password using Firebase Authentication
-            const userCredential = await createUserWithEmailAndPassword(auth, email, hashedPassword);
+            // Create user with email and password
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Save user data to Firebase Realtime Database (including the hashed password)
+            // Save user data to Firebase Realtime Database
             const userRef = ref(database, 'users/' + user.uid);
             await set(userRef, {
                 firstName: firstName,
                 lastName: lastName,
                 email: email,
-                password: hashedPassword, // Store the hashed password in the database
-                uid: user.uid
+                role: "user" // Default role is "user"
             });
 
             console.log("User registered successfully:", user);
-            showNotification("Sign-up successful! Redirecting...", true);
+            showNotification("Sign-up successful! Redirecting...");
 
             // Redirect to login page after successful sign-up
             setTimeout(() => {
@@ -125,27 +107,31 @@
         } catch (error) {
             console.error("Sign-up error:", error.message);
 
-            // Handling different types of errors
-            if (error.code === 'auth/email-already-in-use') {
-                showNotification("Error: This email is already in use. Please try another one.", true);
-            } else if (error.code === 'auth/invalid-email') {
-                showNotification("Error: The email format is invalid. Please check and try again.", true);
-            } else if (error.code === 'auth/weak-password') {
-                showNotification("Error: The password is too weak. Please use a stronger password.", true);
-            } else {
-                showNotification("Error: " + error.message, true);
+            // Handle Firebase errors
+            switch (error.code) {
+                case 'auth/email-already-in-use':
+                    showNotification("Error: This email is already in use. Please try another one.", true);
+                    break;
+                case 'auth/invalid-email':
+                    showNotification("Error: The email format is invalid. Please check and try again.", true);
+                    break;
+                case 'auth/weak-password':
+                    showNotification("Error: The password is too weak. Please use a stronger password.", true);
+                    break;
+                default:
+                    showNotification("Error: " + error.message, true);
+                    break;
             }
         }
     }
 
-  
     // Handle sign-up form submission
     document.getElementById('signupForm').addEventListener('submit', function(event) {
         event.preventDefault();
 
-        const firstName = document.getElementById('firstName').value;
-        const lastName = document.getElementById('lastName').value;
-        const email = document.getElementById('email').value;
+        const firstName = document.getElementById('firstName').value.trim();
+        const lastName = document.getElementById('lastName').value.trim();
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
 
         signUpUser(firstName, lastName, email, password);
