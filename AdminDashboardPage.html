@@ -26,7 +26,7 @@
         .admin-controls { margin-bottom: 20px; }
         .stats { margin-top: 20px; }
         .stats div { margin-bottom: 10px; }
-        canvas { max-width: 100%; }
+        canvas { max-width: 100%;}
 
         /* Modal Styles */
         .modal {
@@ -493,8 +493,7 @@ function updateTable() {
             const resourceData = { name, details, status: 'Pending', fileUrl: '', requestCount: 0 };
             saveUpdatedResource(resourceId, resourceData);
         }
-
-        function saveUpdatedResource(resourceId, resourceData) {
+function saveUpdatedResource(resourceId, resourceData) {
             db.ref('resources/' + resourceId).update(resourceData)
                 .then(() => {
                     alert("Resource updated successfully");
@@ -504,21 +503,20 @@ function updateTable() {
                 .catch(error => {
                     console.error("Error updating resource:", error);
                     alert("Error updating resource. Please check the console for details.");
-                });
-        }
+                }); }
 
         function removeFile() {
             // Logic to reset the file input.
             document.getElementById('fileUpload').value = '';
             selectedFile = null; // Reset selected file
             document.getElementById('uploadBtn').style.display = 'none'; // Hide upload button
-        }
+ }
 
         // Adding event listeners for buttons
         document.getElementById('addResourceBtn').addEventListener('click', addResource);
         document.getElementById('updateResourceBtn').addEventListener('click', updateResource); // Add event listener for update
-
-        window.onload = updateTable;
+ window.onload = updateTable;
     </script>
 </body>
 </html>
+
