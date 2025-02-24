@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="styles.css"> <!-- External CSS -->
+
+    <style>
+        /* Basic Styling */
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #root {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin-top: 20px;
+        }
+
+        section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 15px;
+        }
+
+        h2 {
+            color: black;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.4rem;
+            color: #080808;
+        }
+
+        section:hover {
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            transform: translateY(-3px);
+            transition: 0.3s ease;
+        }
+
+        .notification {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            display: none;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class ="TempNav">
+        Temporary Navbar location
+    </div>
+    <div class ="container">
+        <div class ="menuContainer">
+            <button class="menuButtonStyling">Button 1</button>
+            <button class="menuButtonStyling">Button 2</button>
+            <button class="menuButtonStyling">Button 3</button>
+            <button class="menuButtonStyling">Button 4</button>
+        </div>
+        <div class ="adminResourceContainer">
+    <div id="root"></div>
+    <h2 style="color: white;">Request a Resource</h2>
+
+    <form id="request-form">
+        <input type="text" id="resource-name" placeholder="Enter resource name" required>
+        <button type="submit">Request</button>
+    </form>
+
+    <div id="notification" style="display: none; margin-top: 10px; color: green;"></div>
+
+    <!--  Firebase SDK (Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+</div>
+</div>
+</div>
+<div class = "userFooter">
+    Footer Location
+</div>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+            authDomain: "system-galacticgeeks.firebaseapp.com",
+            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "system-galacticgeeks",
+            storageBucket: "system-galacticgeeks.appspot.com",
+            messagingSenderId: "835850762785",
+            appId: "1:835850762785:web:d2e42efe2422dac089c160",
+            measurementId: "G-5S4L5M5GG5"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Function to Create Resource Cards
+        function createResourceCard(resource) {
+            const section = document.createElement('section');
+            section.innerHTML = `
+                <h2>${resource.name}</h2>
+                <p>${resource.description || resource.details}</p>
+                <button onclick="requestResource('${resource.name}')">Request</button>
+            `;
+            return section;
+        }
+
+        // Function to Request a Resource
+        function requestResource(name) {
+            db.ref('requests').push({ name, status: 'pending' })
+                .then(() => {
+                    showNotification(`Request for "${name}" submitted!`);
+                })
+                .catch(error => console.error("Error requesting resource:", error));
+        }
+
+        // Fetch Resources from Firebase and Display Them
+        function loadResources() {
+            db.ref('resources').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    const resources = snapshot.val();
+                    const root = document.getElementById('root');
+                    root.innerHTML = ""; // Clear before appending new
+                    Object.values(resources).forEach(resource => {
+                        root.appendChild(createResourceCard(resource));
+                    });
+                }
+            });
+        }
+
+        // Handle Resource Requests Form Submission
+        document.getElementById('request-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const resourceName = document.getElementById('resource-name').value.trim();
+            if (!resourceName) {
+                alert("Please enter a resource name.");
+                return;
+            }
+
+            db.ref('requests').push({ name: resourceName, status: 'pending' })
+                .then(() => {
+                    showNotification(`Request for "${resourceName}" submitted!`);
+                    document.getElementById('request-form').reset();
+                })
+                .catch(error => console.error("Error submitting request:", error));
+        });
+
+        // Listen for Updates in Resource Requests (Real-Time)
+        db.ref('requests').on('child_changed', snapshot => {
+            const updatedRequest = snapshot.val();
+            showNotification(`Your request for "${updatedRequest.name}" has been ${updatedRequest.status}`);
+        });
+
+        // Function to Show Notifications
+        function showNotification(message) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+
+        // Load resources when the page loads
+        loadResources();
+    </script>
+</body>
