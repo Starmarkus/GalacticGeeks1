@@ -198,7 +198,7 @@ height: 50%;
     .TempNav ul {
         list-style: none; /* Removes bullet points */
         margin: 0;
-        padding-top: 2vh;
+        padding: 0;
         display: flex; /* Makes list items appear next to each other */
         justify-content: flex-end; /* Aligns items to the right */
     }

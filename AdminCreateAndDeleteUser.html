@@ -31,6 +31,13 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
+    <div class ="TempNav">
+        <ul>
+        <li><a href="LogInPage.html">Sign Out</a></li>
+        <li><a href="AdminCreateAndDeleteUser.html">Edit Userst</a></li>
+        <li><a href="UserProfilePage.html">Profile</a></li>
+    </ul>
+    </div>
     <h1>Admin - Add User</h1>
     <form id="add-user-form">
         <label for="firstName">First Name:</label>
@@ -69,6 +76,10 @@
             <!-- Users will be loaded here dynamically -->
         </tbody>
     </table>
+
+    <div class="userFooter">
+        <h2>Footer Location</h2>
+    </div>
 
     <script>
         // Firebase configuration
