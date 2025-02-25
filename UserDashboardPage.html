@@ -149,8 +149,7 @@
                 }
             });
         }
-
-        // Handle Resource Requests Form Submission
+// Handle Resource Requests Form Submission
         document.getElementById('request-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const resourceName = document.getElementById('resource-name').value.trim();
@@ -158,7 +157,6 @@
                 alert("Please enter a resource name.");
                 return;
             }
-
             db.ref('requests').push({ name: resourceName, status: 'pending' })
                 .then(() => {
                     showNotification(`Request for "${resourceName}" submitted!`);
@@ -166,24 +164,44 @@
                 })
                 .catch(error => console.error("Error submitting request:", error));
         });
-
-        // Listen for Updates in Resource Requests (Real-Time)
+// Listen for Updates in Resource Requests (Real-Time)
         db.ref('requests').on('child_changed', snapshot => {
             const updatedRequest = snapshot.val();
             showNotification(`Your request for "${updatedRequest.name}" has been ${updatedRequest.status}`);
         });
+// Function to Show Notifications
+function showNotification(message) {
+    // Create the notification container
+    const notification = document.createElement('div');
+    notification.textContent = message;
+    // Apply styles for a large, blue notification at the top
+    Object.assign(notification.style, {
+        position: 'fixed',
+        top: '10px', // Positioned at the top
+        left: '50%',
+        transform: 'translateX(-50%)', // Center it horizontally
+        background: '#007BFF', // Blue color
+        color: '#fff',
+        padding: '20px 40px', // Larger padding for a big pop-up
+        fontSize: '20px', // Bigger text
+        fontWeight: 'bold',
+        borderRadius: '8px',
+        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.2)',
+        zIndex: '1000',
+        opacity: '1',
+        transition: 'opacity 0.5s ease-in-out',
+    });
 
-        // Function to Show Notifications
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);
-        }
+    // Append to the body
+    document.body.appendChild(notification);
 
-        // Load resources when the page loads
+    // Remove the notification after 5 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 500);
+    }, 5000);
+}
+// Load resources when the page loads
         loadResources();
     </script>
 </body>
