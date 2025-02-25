@@ -71,29 +71,36 @@
         <li><a href="LogInPage.html">Sign Out</a></li>
         <li><a href="UserProfilePage.html">Profile</a></li>
     </ul>
+    <div class="TempNav">
+        Temporary Navbar location
+        <button id="logout-button">Logout</button>
     </div>
-    <div class ="container">
-        
-        <div class ="adminResourceContainer">
-    <div id="root"></div>
-    <h2 style="color: white;">Request a Resource</h2>
-
-    <form id="request-form">
-        <input type="text" id="resource-name" placeholder="Enter resource name" required>
-        <button type="submit">Request</button>
-    </form>
-
-    <div id="notification" style="display: none; margin-top: 10px; color: green;"></div>
-
-    <!--  Firebase SDK (Compat Mode) -->
+    <div class="container">
+        <div class="menuContainer">
+            <button class="" onclick="window.location.href='UserProfilePage.html'">User Profile</button>
+            <button class="menuButtonStyling">Button 2</button>
+            <button class="menuButtonStyling">Button 3</button>
+            <button class="menuButtonStyling">Button 4</button>
+        </div>
+        <div class="adminResourceContainer">
+            <div id="root"></div>
+            <h2 style="color: white;">Request a Resource</h2>
+            <form id="request-form">
+                <input type="text" id="resource-name" placeholder="Enter resource name" required>
+                <button type="submit">Request</button>
+            </form>
+            <div id="notification" style="display: none; margin-top: 10px; color: green;"></div>
+        </div>
+    </div>
+    <div class="userFooter">
+        Footer Location
+    </div>
+    
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-</div>
-</div>
-</div>
-<div class = "userFooter">
-    Footer Location
-</div>
+    
     <script>
         // Firebase Configuration
         const firebaseConfig = {
@@ -109,7 +116,22 @@
 
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
         const db = firebase.database();
+
+        // Authentication Persistence & Redirection
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = "login.html"; // Redirect if not logged in
+            }
+        });
+
+        // Logout Function
+        document.getElementById('logout-button').addEventListener('click', () => {
+            auth.signOut().then(() => {
+                window.location.href = "LoginPage.html";
+            }).catch(error => console.error("Logout Error:", error));
+        });
 
         // Function to Create Resource Cards
         function createResourceCard(resource) {
@@ -122,29 +144,21 @@
             return section;
         }
 
-        // Function to Request a Resource
-        function requestResource(name) {
-            db.ref('requests').push({ name, status: 'pending' })
-                .then(() => {
-                    showNotification(`Request for "${name}" submitted!`);
-                })
-                .catch(error => console.error("Error requesting resource:", error));
-        }
-
-        // Fetch Resources from Firebase and Display Them
+        // Fetch Resources from Firebase
         function loadResources() {
             db.ref('resources').on('value', snapshot => {
                 if (snapshot.exists()) {
                     const resources = snapshot.val();
                     const root = document.getElementById('root');
-                    root.innerHTML = ""; // Clear before appending new
+                    root.innerHTML = "";
                     Object.values(resources).forEach(resource => {
                         root.appendChild(createResourceCard(resource));
                     });
                 }
             });
         }
-// Handle Resource Requests Form Submission
+
+        // Handle Resource Requests Form Submission
         document.getElementById('request-form').addEventListener('submit', function(event) {
             event.preventDefault();
             const resourceName = document.getElementById('resource-name').value.trim();
@@ -196,7 +210,9 @@ function showNotification(message) {
         setTimeout(() => notification.remove(), 500);
     }, 5000);
 }
-// Load resources when the page loads
+
+        // Load resources when the page loads
         loadResources();
     </script>
 </body>
+</html>
