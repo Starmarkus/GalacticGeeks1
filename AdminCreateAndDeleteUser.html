@@ -4,15 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin - Manage Users</title>
-<link rel="stylesheet" href="styles.css"> <!-- Link to external stylesheet -->
+    <link rel="stylesheet" href="styles.css">
     <style>
-        /* Add your CSS styles here */
-        
-        body{
+        body {
             margin-left: 5%;
             margin-right: 5%;
         }
-        h1, h2, h3{
+        h1, h2, h3 {
             color: white;
         }
         label {
@@ -21,22 +19,20 @@
         }
 
         td {
-    color: white;
-}
-
-        
+            color: white;
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
-    <div class ="TempNav">
+    <div class="TempNav">
         <ul>
-        <li><a href="LogInPage.html">Sign Out</a></li>
-        <li><a href="AdminCreateAndDeleteUser.html">Edit Userst</a></li>
-        <li><a href="UserProfilePage.html">Profile</a></li>
-    </ul>
+            <li><a href="LogInPage.html">Sign Out</a></li>
+            <li><a href="AdminCreateAndDeleteUser.html">Edit Users</a></li>
+            <li><a href="UserProfilePage.html">Profile</a></li>
+        </ul>
     </div>
     <h1>Admin - Add User</h1>
     <form id="add-user-form">
@@ -98,6 +94,7 @@
         const auth = firebase.auth(); // Firebase Authentication
         const db = firebase.database();
 
+        // Add user to Firebase Authentication and Database
         document.getElementById('add-user-form').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -113,9 +110,8 @@
                     const user = userCredential.user;
                     const userId = user.uid;
 
-                    // Add user details to Firebase Database
-                    const newUserRef = db.ref('users').push();
-                    newUserRef.set({
+                    // Add user details to Firebase Database using their UID
+                    db.ref('users/' + userId).set({
                         firstName: firstName,
                         lastName: lastName,
                         email: email,
@@ -125,6 +121,7 @@
                     .then(() => {
                         alert('User added successfully!');
                         document.getElementById('add-user-form').reset();
+                        loadUsers(); // Reload users
                     })
                     .catch(error => {
                         console.error('Error adding user:', error);
@@ -137,6 +134,7 @@
                 });
         });
 
+        // Load all users from the database
         function loadUsers() {
             const usersRef = db.ref('users');
             usersRef.on('value', snapshot => {
@@ -149,12 +147,12 @@
                         const user = users[userId];
                         const row = document.createElement('tr');
                         row.innerHTML = `
-                            <td>${user.firstName}</td> <!-- Display first name -->
-                            <td>${user.lastName}</td> <!-- Display last name -->
+                            <td>${user.firstName}</td>
+                            <td>${user.lastName}</td>
                             <td>${user.email}</td>
-                            <td>${user.role}</td> <!-- Display role -->
+                            <td>${user.role}</td>
                             <td>
-                                <button onclick="deleteUser('${userId}', '${user.uid}')">Delete</button>
+                                <button onclick="deleteUser('${userId}')">Delete</button>
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -163,25 +161,35 @@
             });
         }
 
-        function deleteUser(userId, uid) {
+        // Delete user from Firebase Authentication and Database
+function deleteUser(userId) {
+    const userRef = db.ref('users/' + userId);
+    userRef.once('value', snapshot => {
+        const user = snapshot.val();
+        if (user) {
             // Delete the user from Firebase Authentication
-            auth.getUser(uid)
-                .then(userRecord => {
-                    return userRecord.delete();
-                })
+            const userAuth = auth.getUser(user.uid);
+            userAuth.delete()
                 .then(() => {
-                    // Remove user from the database
-                    db.ref(`users/${userId}`).remove()
-                    .then(() => alert('User deleted successfully!'))
-                    .catch(error => console.error('Error deleting user from database:', error));
+                    // If successful, delete from the Realtime Database
+                    userRef.remove().then(() => {
+                        alert('User deleted successfully from Authentication and Database!');
+                        loadUsers(); // Reload users
+                    }).catch(error => {
+                        console.error('Error deleting user from Database:', error);
+                        alert('Failed to delete user from Database.');
+                    });
                 })
                 .catch(error => {
-                    console.error('Error deleting user from Firebase Authentication:', error);
-                    alert('Failed to delete user from authentication system.');
+                    console.error('Error deleting user from Authentication:', error);
+                    alert('Failed to delete user from Authentication.');
                 });
         }
+    });
+}
 
-        loadUsers();
+
+        loadUsers(); // Load users when the page loads
     </script>
 </body>
 </html>
