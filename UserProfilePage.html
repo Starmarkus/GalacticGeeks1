@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js"></script>
     <link rel="stylesheet" href="styles.css">
 
     <style>
@@ -203,8 +200,6 @@
             <div class="detail-label">Location:</div>
             <div class="detail-box"><input type="text" id="location" disabled></div>
         </div>
-
-        
     </div>
 
     <div class="button-container">
@@ -214,7 +209,7 @@
         <button class="button save-btn" onclick="saveChanges()">Save</button>
     </div>
 
-    <script>
+    <script type="module">
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
@@ -226,38 +221,56 @@
             appId: "1:835850762785:web:d2e42efe2422dac089c160",
             measurementId: "G-5S4L5M5GG5"
         };
-
+    
         // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+        import { getAuth, setPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
 
         let currentUser = null;
 
-        // Load user data from Firebase
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                db.collection("users").doc(user.uid).get().then(doc => {
-                    if (doc.exists) {
-                        const data = doc.data();
+        // Set authentication persistence
+        setPersistence(auth, firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => {
+                // Check if the user is logged in
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        currentUser = user;
+                        loadUserData(user.uid);
+                    } else {
+                        window.location.href = "login.html"; // Redirect to login page if not authenticated
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Error setting auth persistence:", error);
+            });
+
+        // Function to load user data
+        function loadUserData(userId) {
+            const userRef = doc(db, "users", userId);
+            getDoc(userRef)
+                .then(docSnap => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
                         document.getElementById("usernameDisplay").textContent = data.firstName + " " + data.lastName;
                         document.getElementById("firstName").value = data.firstName || "";
                         document.getElementById("lastName").value = data.lastName || "";
                         document.getElementById("email").value = data.email || "";
                         document.getElementById("location").value = data.location || "";
-                        document.getElementById("phone").value = data.phone || "";
                     }
-                }).catch(error => {
+                })
+                .catch(error => {
                     console.error("Error fetching user data:", error);
                 });
-            } else {
-                window.location.href = "login.html"; // Redirect to login page if not authenticated
-            }
-        });
+        }
 
         function goBack() {
-            window.location.href = "UserDashboardPage.html"; // Redirect to UserDashboardPage.html
+            window.location.href = "UserDashboardPage.html";
         }
 
         function enableEditing() {
@@ -270,11 +283,11 @@
             const updatedData = {
                 firstName: document.getElementById("firstName").value,
                 lastName: document.getElementById("lastName").value,
-                location: document.getElementById("location").value,
-                phone: document.getElementById("phone").value
+                location: document.getElementById("location").value
             };
 
-            db.collection("users").doc(currentUser.uid).update(updatedData)
+            const userRef = doc(db, "users", currentUser.uid);
+            updateDoc(userRef, updatedData)
                 .then(() => {
                     alert("Profile updated successfully!");
                     document.querySelectorAll('.detail-box input').forEach(input => input.setAttribute('disabled', 'true'));
@@ -284,6 +297,5 @@
                 .catch(error => console.error("Error updating profile:", error));
         }
     </script>
-
 </body>
 </html>
