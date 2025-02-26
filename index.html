@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const userData = snapshot.val();
             const role = userData.role || "user"; // Default role: user
 
-            showNotification("Login successful!", false); // Show success notification
+            showNotification("Login successful", false); // Show success notification
             
             // Delay redirection to allow notification to be seen
             setTimeout(() => {
