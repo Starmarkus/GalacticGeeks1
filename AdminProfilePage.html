@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+        .centerUserCardDiv {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rounded-rectangle {
+            width: 80%;
+            height: 150px;
+            background-color: #3498db; 
+            border-radius: 60px; 
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-right: 30px;
+        }
+
+        .text-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .username {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .welcome-message {
+            font-size: 25px;
+        }
+
+        .heading {
+            font-size: 40px;
+            font-weight: bold;
+            padding-right: 8%;
+            margin-left: auto;
+        }
+
+        .user-detail-container {
+            width: 60%;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            width: 120px;
+        }
+
+        .detail-box {
+            flex: 1;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .detail-box input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .phone-input {
+            display: flex;
+            gap: 5px;
+        }
+
+        .phone-box {
+            width: 50px;
+            text-align: center;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .phone-number {
+            width: 100px;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .button-container {
+            width: 60%;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 20px auto 0;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #f1c40f;
+            color: white;
+        }
+
+        .back-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .clear-btn {
+            background-color: #e74c3c;
+            color: white;
+            display: none; /* Initially hidden */
+        }
+
+        .save-btn {
+            background-color: #2ecc71;
+            color: white;
+            display: none;
+        }
+
+        .button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class ="TempNav">
+        <ul>
+        <li><a href="LogInPage.html">Sign Out</a></li>
+        <li><a href="AdminDashboardPage.html">Dashboard</a></li>
+    </ul>
+    </div>
+
+    <div class="centerUserCardDiv">
+        <div class="rounded-rectangle">
+            <div class="icon">👤</div>
+            <div class="text-container">
+                <div class="username" id="usernameDisplay">Loading...</div>
+                <div class="welcome-message">Welcome to Admin Profile</div>
+            </div>
+
+            <div class="heading">Welcome To Admin Profile</div>
+        </div>
+    </div>
+
+    <div class="user-detail-container">
+        <div class="detail-row">
+            <div class="detail-label"><h1 style="color: white;">First Name:</h1></div>
+            <div class="detail-box"><input type="text" id="firstName" disabled></div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label"><h1 style="color: white;">Last Name:</h1></div>
+            <div class="detail-box"><input type="text" id="lastName" disabled></div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label"><h1 style="color: white;">Email:</h1></div>
+            <div class="detail-box"><input type="text" id="email" disabled></div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-label"><h1 style="color: white;">Location:</h1></div>
+            <div class="detail-box"><input type="text" id="location" disabled></div>
+        </div>
+    </div>
+
+    <div class="button-container">
+        <button class="button back-btn" onclick="goBack()">Back</button>
+        <button class="button edit-btn" onclick="enableEditing()">Edit</button>
+        <button class="button clear-btn" onclick="clearFields()">Clear</button>
+        <button class="button save-btn" onclick="saveChanges()">Save</button>
+    </div>
+
+    <script type="module">
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+            authDomain: "system-galacticgeeks.firebaseapp.com",
+            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "system-galacticgeeks",
+            storageBucket: "system-galacticgeeks.firebasestorage.app",
+            messagingSenderId: "835850762785",
+            appId: "1:835850762785:web:d2e42efe2422dac089c160",
+            measurementId: "G-5S4L5M5GG5"
+        };
+    
+        // Initialize Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
+        import { getAuth, setPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
+        import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        const db = getFirestore();
+
+        let currentUser = null;
+
+        // Set authentication persistence
+        setPersistence(auth, firebase.auth.Auth.Persistence.LOCAL)
+            .then(() => {
+                // Check if the user is logged in
+                onAuthStateChanged(auth, user => {
+                    if (user) {
+                        currentUser = user;
+                        loadUserData(user.uid);
+                    } else {
+                        window.location.href = "login.html"; // Redirect to login page if not authenticated
+                    }
+                });
+            })
+            .catch(error => {
+                console.error("Error setting auth persistence:", error);
+            });
+
+        // Function to load user data
+        function loadUserData(userId) {
+            const userRef = doc(db, "users", userId);
+            getDoc(userRef)
+                .then(docSnap => {
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        document.getElementById("usernameDisplay").textContent = data.firstName + " " + data.lastName;
+                        document.getElementById("firstName").value = data.firstName || "";
+                        document.getElementById("lastName").value = data.lastName || "";
+                        document.getElementById("email").value = data.email || "";
+                        document.getElementById("location").value = data.location || "";
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching user data:", error);
+                });
+        }
+
+        function goBack() {
+            window.location.href = "AdminDashboardPage.html";
+        }
+
+        function enableEditing() {
+            document.querySelectorAll('.detail-box input').forEach(input => input.removeAttribute('disabled'));
+            document.querySelector('.edit-btn').style.display = 'none';
+            document.querySelector('.save-btn').style.display = 'inline-block';
+        }
+
+        function saveChanges() {
+            const updatedData = {
+                firstName: document.getElementById("firstName").value,
+                lastName: document.getElementById("lastName").value,
+                location: document.getElementById("location").value
+            };
+
+            const userRef = doc(db, "users", currentUser.uid);
+            updateDoc(userRef, updatedData)
+                .then(() => {
+                    alert("Profile updated successfully!");
+                    document.querySelectorAll('.detail-box input').forEach(input => input.setAttribute('disabled', 'true'));
+                    document.querySelector('.edit-btn').style.display = 'inline-block';
+                    document.querySelector('.save-btn').style.display = 'none';
+                })
+                .catch(error => console.error("Error updating profile:", error));
+        }
+    </script>
+</body>
+</html>
