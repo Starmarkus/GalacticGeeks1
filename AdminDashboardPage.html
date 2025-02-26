@@ -225,7 +225,43 @@
                 document.getElementById('uploadBtn').style.display = 'none'; // Hide if no file is selected
             }
         }
+        
+function uploadFileToServer() {
+    if (!selectedFile) {
+        alert('No file selected!');
+        return;
+    }
 
+    const formData = new FormData();
+    formData.append('pdfFile', selectedFile);
+
+    // Send the file to the server
+    fetch('/upload', {
+        method: 'POST',
+        body: formData,
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok.');
+        }
+        return response.text(); // Assuming you send back a text response
+    })
+    .then(message => {
+        alert(message); // Show success message
+        updateTable(); // Consider updating the resource data table if needed
+        resetFileInput(); // Clear file input
+    })
+    .catch(error => {
+        console.error('Error uploading file:', error);
+        alert('Error uploading file.');
+    });
+}
+
+function resetFileInput() {
+    document.getElementById('fileUpload').value = ''; // Clear file input
+    selectedFile = null; // Reset the selectedFile variable
+    document.getElementById('uploadBtn').style.display = 'none'; // Hide the upload button again
+}
         //new code
 // Open the modal and populate resource list
 function openModal() {
