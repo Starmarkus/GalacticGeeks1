@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: none; /* Hidden by default */
+            z-index: 1000;
+        }
+
+        .notification.error {
+            background-color: #f44336; /* Red for errors */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="leftAllignDiv">
+        <div class="boxBackgroundDiv">
+            <div class="signup-container">
+                <h2 style="color: white;">Login</h2>
+                <form id="loginForm">
+                    <input type="email" id="email" placeholder="Email" required>
+                    <input type="password" id="password" placeholder="Password" required>
+                    <a href="ForgotPasswordPage.html" class="forgot-password">Forgot password?</a>
+                    <button type="submit">Login</button>
+                    <a href="SignUpPage.html" class="signup-link">Don't have an account? Sign Up</a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script type="module">
+        // Import Firebase modules
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+    authDomain: "system-galacticgeeks.firebaseapp.com",
+    databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "system-galacticgeeks",
+    storageBucket: "system-galacticgeeks.appspot.com",
+    messagingSenderId: "835850762785",
+    appId: "1:835850762785:web:d2e42efe2422dac089c160",
+    measurementId: "G-5S4L5M5GG5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+// Keep user logged in across sessions
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        const userRef = ref(database, 'users/' + user.uid);
+        get(userRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                const role = userData.role || "user";
+
+                // Redirect based on role
+                if (window.location.pathname.includes("LoginPage.html")) {
+                    if (role === "admin") {
+                        window.location.href = "AdminDashboardPage.html";
+                    } else {
+                        window.location.href = "UserDashboardPage.html";
+                    }
+                }
+            }
+        });
+    } else {
+        if (!window.location.pathname.includes("LoginPage.html")) {
+            window.location.href = "LoginPage.html";
+        }
+    }
+});
+
+// Logout function
+function logout() {
+    signOut(auth).then(() => {
+        window.location.href = "LoginPage.html";
+    }).catch((error) => {
+        console.error("Logout error:", error);
+    });
+}
+
+// Attach logout function to logout button if it exists
+document.addEventListener("DOMContentLoaded", () => {
+    const logoutBtn = document.getElementById("logoutButton");
+    if (logoutBtn) {
+        logoutBtn.addEventListener("click", logout);
+    }
+});
+
+        
+
+
+        // Sign-in function
+        async function signInUser(email, password) {
+    try {
+        // Sign in with Firebase Authentication
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        // Retrieve user role from Firebase Database
+        const userRef = ref(database, 'users/' + user.uid);
+        const snapshot = await get(userRef);
+
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const role = userData.role || "user"; // Default role: user
+
+            showNotification("Login successful!", false); // Show success notification
+            
+            // Delay redirection to allow notification to be seen
+            setTimeout(() => {
+                if (role === "admin") {
+                    window.location.href = "AdminDashboardPage.html";
+                } else {
+                    window.location.href = "UserDashboardPage.html";
+                }
+            }, 2000); // 2 seconds delay
+
+        } else {
+            showNotification("Error: User data not found.", true);
+        }
+    } catch (error) {
+        console.error("Login error:", error.message);
+        showNotification("Error: " + error.message, true);
+    }
+}
+
+
+        // Handle login form submission
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            signInUser(email, password);
+        });
+
+        // Show notification (for errors or success messages)
+        function showNotification(message, isError = false) {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.classList.remove('error');
+            if (isError) {
+                notification.classList.add('error');
+            }
+            notification.style.display = 'block';
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);//Test push pull
+        }
+    </script>
+
+</body>
+</html>
