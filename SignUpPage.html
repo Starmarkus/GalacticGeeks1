@@ -22,6 +22,16 @@
         .notification.error {
             background-color: #f44336;
         }
+
+        .password-requirements {
+            font-size: 12px;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .password-requirements li {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -35,6 +45,13 @@
                 <input type="text" id="lastName" placeholder="Last Name" required>
                 <input type="email" id="email" placeholder="Email" required>
                 <input type="password" id="password" placeholder="Password" required>
+                
+                <ul class="password-requirements">
+                    <li>Minimum 8 characters.One uppercase letter</li>
+                    <li>One number.One special character (!, @, etc.)</li>
+                    
+                </ul>
+
                 <button type="submit">Sign Up</button>
                 <a href="LogInPage.html" class="login-link">Already have an account? Log in</a>
             </form>
@@ -81,8 +98,19 @@
         }, 5000);
     }
 
+    // Password validation function
+    function isPasswordValid(password) {
+        const passwordRegex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*]).{8,}$/;
+        return passwordRegex.test(password);
+    }
+
     // Sign-up function
     async function signUpUser(firstName, lastName, email, password) {
+        if (!isPasswordValid(password)) {
+            showNotification("Error: Password does not meet the requirements. Please follow the guidelines.", true);
+            return;
+        }
+
         try {
             // Create user with email and password
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
