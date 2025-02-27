@@ -321,47 +321,78 @@
         }
 
         function updateTable() {
-            db.ref('resources').on('value', (snapshot) => {
-                const tbody = document.getElementById('data-table-body');
-                tbody.innerHTML = '';
+    db.ref('resources').on('value', (snapshot) => {
+        const tbody = document.getElementById('data-table-body');
+        tbody.innerHTML = ''; // Clear the table body
 
-                let totalRequests = 0;
-                let totalApprovals = 0;
-                let requestCountData = {};
+        let totalRequests = 0;
+        let totalApprovals = 0;
+        let requestCountData = {};
 
-                snapshot.forEach(childSnapshot => {
-                    const resource = childSnapshot.val();
-                    const resourceId = childSnapshot.key;
+        snapshot.forEach(childSnapshot => {
+            const resource = childSnapshot.val();
+            const resourceId = childSnapshot.key;
 
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${resource.name}</td>
-                        <td class="resource-details">${resource.details}</td>
-                        <td>${resourceId}</td>
-                        <td>${resource.status}</td>
-                        <td>
-                           <button onclick="editResource('${resourceId}', '${resource.name}', '${resource.details}')">Edit</button>
-                            <button onclick="deleteResource('${resourceId}')">Delete</button>
-                        </td>
-                        <td>${resource.fileUrl ? `<a href="${resource.fileUrl}" target="_blank">View File</a>` : 'No File'}</td>`;
-                    tbody.appendChild(row);
+            const row = document.createElement('tr');
+            row.setAttribute('data-resource-id', resourceId); // Add resourceId as a custom data attribute
 
-                    totalRequests++; // Increment on every resource
-                    if (resource.status === 'Approved') {
-                        totalApprovals++; // Increment approvals
-                    }
-                    // Count requests for chart data
-                    requestCountData[resource.name] = (requestCountData[resource.name] || 0) + 1;
-                });
+            // Create table row with existing resource data
+            row.innerHTML = `
+                <td>${resource.name}</td>
+                <td class="resource-details">${resource.details}</td>
+                <td>${resourceId}</td>
+                <td>${resource.status}</td>
+                <td>
+                    <button onclick="editResource('${resourceId}', '${resource.name}', '${resource.details}')">Edit</button>
+                    <button onclick="deleteResource('${resourceId}')">Delete</button>
+                </td>
+                <td class="uploaded-file-cell">
+                    ${resource.fileUrl ? `<a href="${resource.fileUrl}" target="_blank">View File</a>` : 'No File'}
+                </td>
+            `;
+            tbody.appendChild(row);
 
-                document.getElementById('totalRequests').textContent = totalRequests;
-                document.getElementById('totalApprovals').textContent = totalApprovals;
+            totalRequests++; // Increment on every resource
+            if (resource.status === 'Approved') {
+                totalApprovals++; // Increment approvals
+            }
 
-                // Draw the chart with collected data
-                drawChart(requestCountData);
-            });
+            // Count requests for chart data
+            requestCountData[resource.name] = (requestCountData[resource.name] || 0) + 1;
+        });
+
+        document.getElementById('totalRequests').textContent = totalRequests;
+        document.getElementById('totalApprovals').textContent = totalApprovals;
+
+        // Draw the chart with collected data
+        drawChart(requestCountData);
+    });
+}
+
+// Function to update file URL in the table after upload
+function updateFileUrlInTable(resourceId, fileUrl, fileName) {
+    const table = document.getElementById("resourcesTable"); // Your table ID
+    const row = table.querySelector(`tr[data-resource-id="${resourceId}"]`);
+
+    if (row) {
+        const fileCell = row.querySelector(".uploaded-file-cell");
+
+        if (fileCell) {
+            const fileUrlElement = fileCell.querySelector("a");
+            if (fileUrlElement) {
+                fileUrlElement.href = fileUrl;
+                fileUrlElement.textContent = `File: ${fileName}`;
+                fileUrlElement.target = "_blank"; // Opens the file in a new tab
+            } else {
+                const newLink = document.createElement("a");
+                newLink.href = fileUrl;
+                newLink.textContent = `File: ${fileName}`;
+                newLink.target = "_blank"; // Opens the file in a new tab
+                fileCell.appendChild(newLink);
+            }
         }
-
+    }
+}
         function handleFileSelect() {
             const fileInput = document.getElementById('fileUpload');
             selectedFile = fileInput.files[0]; // Get the selected file
@@ -413,27 +444,39 @@
         }
 
         function uploadFile() {
-            if (!currentResourceId || !selectedFile) {
-                alert("Please select a resource and a file to upload.");
-                return;
-            }
+    if (!currentResourceId || !selectedFile) {
+        alert("Please select a resource and a file to upload.");
+        return;
+    }
 
-            const fileRef = storage.ref('uploads/' + selectedFile.name); // Create a reference with the file's name
+    // Check if the selected file is a PDF
+    if (selectedFile.type !== 'application/pdf') {
+        alert("Please upload a PDF file.");
+        return;
+    }
 
-            // Upload the file to Firebase Storage
-            fileRef.put(selectedFile).then(snapshot => {
-                return snapshot.ref.getDownloadURL(); // Get the download URL after upload
-            }).then(url => {
-                return db.ref('resources/' + currentResourceId).update({ fileUrl: url }); // Update the resource data with the uploaded file URL
-            }).then(() => {
-                alert("File uploaded successfully");
-                updateTable(); // Update the resources table
-                resetFileInput(); // Clear file input
-            }).catch(error => {
-                console.error("File upload error:", error);
-                alert("Error uploading file. Please check the console for details.");
-            });
-        }
+    const fileRef = storage.ref('uploads/' + selectedFile.name); // Create a reference with the file's name
+
+    // Upload the file to Firebase Storage
+    fileRef.put(selectedFile).then(snapshot => {
+        return snapshot.ref.getDownloadURL(); // Get the download URL after upload
+    }).then(url => {
+        // Update the resource data with the uploaded file URL
+        return db.ref('resources/' + currentResourceId).update({ 
+            fileUrl: url 
+        });
+    }).then(() => {
+        alert("File uploaded successfully");
+
+        // Update the table to show the PDF URL in the "Uploaded File" column
+        updateTable(); // You need to update this method to properly display the file URL in the correct column
+
+        resetFileInput(); // Clear file input
+    }).catch(error => {
+        console.error("File upload error:", error);
+        alert("Error uploading file. Please check the console for details.");
+    });
+}
 
         function resetFileInput() {
             document.getElementById('fileUpload').value = ''; // Clear file input
