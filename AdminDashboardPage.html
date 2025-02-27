@@ -211,7 +211,7 @@
             const totalApprovals = document.getElementById("totalApprovals");
 
             try {
-                const response = await fetch("AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg"); // Adjust this URL to your actual API endpoint
+                const response = await fetchfetch("https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests.json"); // Adjust this URL to your actual API endpoint
                 const data = await response.json();
                 populateTable(data);
 
@@ -225,7 +225,7 @@
                         approvedCount++;
                     }
                 });
-                
+
                 totalRequests.textContent = data.length;
                 totalApprovals.textContent = approvedCount;
 
@@ -236,6 +236,40 @@
             }
         }
 
+        async function fetchRequests() {
+    const totalRequests = document.getElementById("totalRequests");
+    const totalApprovals = document.getElementById("totalApprovals");
+
+    try {
+        const response = await fetch("https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests.json");
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        populateTable(data);
+
+        // Reset counts
+        let approvedCount = 0;
+        let requestCountData = {};
+
+        for (const id in data) {
+            const request = data[id];
+            requestCountData[request.name] = (requestCountData[request.name] || 0) + 1;
+            if (request.status === 'Approved') {
+                approvedCount++;
+            }
+        }
+
+        totalRequests.textContent = Object.keys(data).length; // Correctly counts total requests
+        totalApprovals.textContent = approvedCount;
+
+        drawChart(requestCountData); // Draw the chart with this data
+
+    } catch (error) {
+        console.error("Error fetching requests:", error);
+    }
+}
         function populateTable(requests) {
     const tableBody = document.getElementById("request-table-body");
     tableBody.innerHTML = ""; // Clear existing rows
@@ -252,9 +286,9 @@
         const { userName, resource, status, id } = request; // Destructure for ease of access
 
         row.innerHTML = `
-            <td>${userName || 'Unknown User'}</td>
+            <td>${userName || userName}</td>
             <td>${resource.name || resource.name}</td>
-            <td>${status || 'No Status'}</td>
+            <td>${status || status}</td>
             <td>
                 <button onclick="updateStatus(${id}, 'Approved')">Approve</button>
                 <button onclick="updateStatus(${id}, 'Rejected')">Reject</button>
@@ -500,4 +534,3 @@
     </script>
 </body>
 </html>
-
