@@ -112,7 +112,11 @@
                 return;
             }
             try {
-                await push(ref(db, 'requests'), { userId: currentUserId, name, status: 'pending' });
+                await push(ref(db, 'requests'), { 
+                    userId: currentUserId, // Save user ID with request
+                    name, 
+                    status: 'pending' 
+                });
                 showNotification(`Request for "${name}" submitted!`);
                 loadUserRequests();
             } catch (error) {
