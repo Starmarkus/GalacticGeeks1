@@ -89,19 +89,19 @@
     <div class="container">
         <div class="adminResourceContainer">
             <h1>Admin Resource Management</h1>
-            
+
             <div class="admin-controls">
                 <h2>Manage Resources</h2>
                 <input type="text" id="resourceName" placeholder="Resource Name">
                 <input type="text" id="resourceDetails" placeholder="Resource Details">
                 <input type="text" id="resourceId" placeholder="Resource ID">
                 <button id="updateResourceBtn" style="display: none;">Update Resource</button>
-                <br><br>
-                <input type="file" id="fileUpload" onchange="handleFileSelect()">
-                <button id="uploadBtn" style="display: none;" onclick="openModal()">Upload PDF</button>
-                <button id="addResourceBtn">Add Resource</button>
-                <button onclick="removeFile()">Remove PDF File</button>
             </div>
+            <input type="file" id="fileInput" onchange="handleFileSelect()">
+            <button id="removeFileButton" style="display: none;" onclick="removeFile()">Remove PDF File</button>
+            <button id="uploadButton" style="display: none;" onclick="openModal()">Upload PDF File</button>
+            <button id="addResourceBtn">Add Resource</button>
+
             <input type="text" id="searchBar" placeholder="Search by Resource Name" oninput="filterResources()">
             <br><br>
 
@@ -117,20 +117,24 @@
                         <th>Uploaded File</th>
                     </tr>
                 </thead>
-                <tbody id="data-table-body"></tbody>
-            </table>
-
-            <h2>User Requests</h2>
-            <table>
-                <thead>
+                <tbody id="data-table-body">
+                    <!-- Example data row for demonstration -->
                     <tr>
-                        <th>User Name</th>
-                        <th>Resource Requested</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <td>Sample Resource</td>
+                        <td class="resource-details">Sample details</td>
+                        <td>sampleID</td>
+                        <td class="status-cell" data-resource-id="sampleID">Pending 
+                            <button onclick="fetchUserRequests('sampleID')">View User Requests</button>
+                        </td>
+                        <td>
+                            <button onclick="editResource('sampleID', 'Sample Resource', 'Sample details')">Edit</button>
+                            <button onclick="deleteResource('sampleID')">Delete</button>
+                        </td>
+                        <td class="uploaded-file-cell">
+                            <a href="#">View File</a>
+                        </td>
                     </tr>
-                </thead>
-                <tbody id="request-table-body"></tbody>
+                </tbody>
             </table>
 
             <div class="stats">
@@ -145,6 +149,15 @@
 
     <div class="userFooter"></div>
 
+    <!-- User Request Modal -->
+    <div id="userRequestModal" class="modal">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <h2>User Requests</h2>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
     <!-- Modal for Selecting Resource -->
     <div id="resourceModal" class="modal">
         <div class="modal-content">
@@ -156,6 +169,28 @@
     </div>
 
     <script>
+        const fileInput = document.getElementById("fileInput");
+        const removeFileButton = document.getElementById("removeFileButton");
+        const uploadButton = document.getElementById("uploadButton");
+
+        // File upload handling
+        fileInput.addEventListener("change", function () {
+            if (fileInput.files.length > 0) {
+                removeFileButton.style.display = "inline-block";
+                uploadButton.style.display = "inline-block";
+            } else {
+                removeFileButton.style.display = "none";
+                uploadButton.style.display = "none";
+            }
+        });
+
+        // Remove selected file
+        function removeFile() {
+            fileInput.value = ""; // Clear the file input
+            removeFileButton.style.display = "none"; // Hide the remove button
+            uploadButton.style.display = "none"; // Hide the upload button
+        }
+
         const firebaseConfig = {
             apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
             authDomain: "system-galacticgeeks.firebaseapp.com",
@@ -316,7 +351,9 @@
                         <td>${resource.name}</td>
                         <td class="resource-details">${resource.details}</td>
                         <td>${resourceId}</td>
-                        <td>${resource.status}</td>
+                        <td class="status-cell" data-resource-id="${resourceId}">${resource.status} 
+                            <button onclick="fetchUserRequests('${resourceId}')">View User Requests</button>
+                        </td>
                         <td>
                             <button onclick="editResource('${resourceId}', '${resource.name}', '${resource.details}')">Edit</button>
                             <button onclick="deleteResource('${resourceId}')">Delete</button>
@@ -395,9 +432,9 @@
 
         // Functions for file uploads
         function handleFileSelect() {
-            const fileInput = document.getElementById('fileUpload');
+            const fileInput = document.getElementById('fileInput');
             selectedFile = fileInput.files[0]; // Get the selected file
-            document.getElementById('uploadBtn').style.display = selectedFile ? 'block' : 'none'; // Show upload button if a file is selected
+            document.getElementById('uploadButton').style.display = selectedFile ? 'block' : 'none'; // Show upload button if a file is selected
         }
 
         function openModal() {
@@ -462,8 +499,8 @@
                 return snapshot.ref.getDownloadURL(); // Get the download URL after upload
             }).then(url => {
                 // Update the resource data with the uploaded file URL
-                return db.ref('resources/' + currentResourceId).update({ 
-                    fileUrl: url 
+                return db.ref('resources/' + currentResourceId).update({
+                    fileUrl: url
                 });
             }).then(() => {
                 alert("File uploaded successfully");
@@ -476,9 +513,9 @@
         }
 
         function resetFileInput() {
-            document.getElementById('fileUpload').value = ''; // Clear file input
+            document.getElementById('fileInput').value = ''; // Clear file input
             selectedFile = null; // Reset the selected file
-            document.getElementById('uploadBtn').style.display = 'none'; // Hide the upload button again
+            document.getElementById('uploadButton').style.display = 'none'; // Hide the upload button again
         }
 
         // Function to edit resource
@@ -503,7 +540,7 @@
             const name = document.getElementById('resourceName').value.trim();
             const details = document.getElementById('resourceDetails').value.trim();
             const resourceData = { name, details, status: 'Pending', fileUrl: '', requestCount: 0 };
-            
+
             db.ref('resources/' + resourceId).update(resourceData)
                 .then(() => {
                     alert("Resource updated successfully");
@@ -520,7 +557,53 @@
         document.addEventListener("DOMContentLoaded", function () {
             fetchRequests(); // Load requests on page load
             updateTable(); // Load resources on page load
+
+            // Close modal event
+            document.getElementById("closeModal").addEventListener("click", function () {
+                document.getElementById("userRequestModal").style.display = "none";
+            });
         });
-    </script>
+
+        // Fetch user requests for a given resource
+        async function fetchUserRequests(resourceId) {
+            const modal = document.getElementById("userRequestModal");
+            const modalContent = document.getElementById("modalContent");
+            modalContent.innerHTML = ""; // Clear previous content
+
+            try {
+                const response = await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}.json`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data) {
+                    console.log("No user requests found.");
+                    modalContent.innerHTML = `<p>No user requests found.</p>`; 
+                    modal.style.display = "block"; // Show the modal
+                    return;
+                }
+
+                const userRequests = Object.keys(data).map(key => ({
+                    id: key,
+                    request: data[key].request || "No request details"
+                }));
+
+                userRequests.forEach(req => {
+                    const p = document.createElement("p");
+                    p.textContent = req.request;
+                    modalContent.appendChild(p);
+                });
+
+                modal.style.display = "block"; // Show the modal
+            } catch (error) {
+                console.error("Error fetching user requests:", error);
+            }
+        }
+  </script>
 </body>
 </html>
+
+   
