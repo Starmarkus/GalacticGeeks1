@@ -7,14 +7,13 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="TempNav">Temporary Navbar location</div>
+    <div class="TempNav">
+        <ul>
+            <li><a href="LogInPage.html">Sign Out</a></li>
+            <li><a href="UserProfilePage.html">Profile</a></li>
+        </ul>
+    </div>
     <div class="container">
-        <div class="menuContainer">
-            <button class="menuButtonStyling">Button 1</button>
-            <button class="menuButtonStyling">Button 2</button>
-            <button class="menuButtonStyling">Button 3</button>
-            <button class="menuButtonStyling">Button 4</button>
-        </div>
         <div class="adminResourceContainer">
             <div id="root"></div>
             <h2 style="color: white;">Request a Resource</h2>
@@ -26,7 +25,7 @@
 
             <div id="notification" style="display: none; margin-top: 10px; color: green;"></div>
 
-            <h2>Your Requests</h2>
+            <h2 style="color: white;">Your Requests</h2>
             <table id="user-requests-table">
                 <thead>
                     <tr>
