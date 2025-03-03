@@ -571,33 +571,85 @@ async function fetchUserRequests(resourceId) {
         // Check if data is empty or null
         if (!data || Object.keys(data).length === 0) {
             console.log("No user requests found.");
-            modalContent.innerHTML = `<p>No user requests found.</p>`;
+            modalContent.innerHTML = `
+                <table border="1">
+                    <tr>
+                        <th>Resource Requested</th>
+                        <th>Status</th>
+                    </tr>
+                    <tr>
+                        <td colspan="2">No user requests found.</td>
+                    </tr>
+                </table>`;
             modal.style.display = "block"; // Show the modal
             return []; // Explicitly return an empty array
         }
 
-        const userRequests = Object.entries(data).map(([key, value]) => ({
-            id: key,
-            request: value.request || "No request details",
-        }));
+        let tableHtml = `
+            <table border="1">
+                <tr>
+                    <th>Resource Requested</th>
+                    <th>Status</th>
+                </tr>`;
 
-        userRequests.forEach(req => {
-            const p = document.createElement("p");
-            p.textContent = req.request;
-            modalContent.appendChild(p);
+        Object.entries(data).forEach(([key, value]) => {
+            const requestText = value.request || "No request details";
+            tableHtml += `
+                <tr>
+                    <td>${requestText}</td>
+                    <td>
+                        <button onclick="approveRequest('${resourceId}', '${key}')">Approve</button>
+                        <button onclick="rejectRequest('${resourceId}', '${key}')">Reject</button>
+                    </td>
+                </tr>`;
         });
 
+        tableHtml += "</table>";
+        modalContent.innerHTML = tableHtml;
         modal.style.display = "block"; // Show the modal
-        return userRequests; // Return the fetched requests
+
+        return Object.entries(data).map(([key, value]) => ({ id: key, request: value.request || "No request details" }));
     } catch (error) {
         console.error("Error fetching user requests:", error);
         return null; // Explicitly return null on failure
     }
 }
+
 async function showRequests(resourceId) {
     const requests = await fetchUserRequests(resourceId);
     console.log(requests); // Now you have access to the request data
 }
+
+async function approveRequest(resourceId, requestId) {
+    console.log(`Approving request: ${requestId}`);
+    try {
+        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}/${requestId}.json`, {
+            method: "PATCH",
+            body: JSON.stringify({ status: "approved" }),
+            headers: { "Content-Type": "application/json" }
+        });
+        alert("Request approved successfully!");
+        showRequests(resourceId);
+    } catch (error) {
+        console.error("Error approving request:", error);
+    }
+}
+
+async function rejectRequest(resourceId, requestId) {
+    console.log(`Rejecting request: ${requestId}`);
+    try {
+        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}/${requestId}.json`, {
+            method: "PATCH",
+            body: JSON.stringify({ status: "rejected" }),
+            headers: { "Content-Type": "application/json" }
+        });
+        alert("Request rejected successfully!");
+        showRequests(resourceId);
+    } catch (error) {
+        console.error("Error rejecting request:", error);
+    }
+}
+
   </script>
 </body>
 </html>
