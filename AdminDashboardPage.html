@@ -82,7 +82,7 @@
         <ul>
             <li><a href="LogInPage.html">Sign Out</a></li>
             <li><a href="AdminCreateAndDeleteUser.html">Edit Users</a></li>
-            <li><a href="AdminProfilePage.html">Profile</a></li>
+            <li><a href="UserProfilePage.html">Profile</a></li>
         </ul>
     </div>
 
@@ -118,8 +118,6 @@
                     </tr>
                 </thead>
                 <tbody id="data-table-body">
-                   
-                        
                     </tr>
                 </tbody>
             </table>
@@ -559,7 +557,7 @@
 
     try {
         const response = await fetch(
-            `https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}.json`
+            `https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests${resourceId}.json`
         );
 
         if (!response.ok) {
@@ -572,13 +570,13 @@
         console.log("Fetched data:", data);
 
         // Check if data is empty or null
-        if (!data || Object.keys(data).length === 0) {
+        if (!data|| Object.keys(data).length === 0) {
             console.log("No user requests found.");
             modalContent.innerHTML = `
                 <table border="1">
                     <tr>
                         <th>Resource Requested</th>
-                        <th>Action</th>
+                        <th>Status</th>
                     </tr>
                     <tr>
                         <td colspan="2">No user requests found.</td>
@@ -596,7 +594,7 @@
                 </tr>`;
 
         // Ensure requestText is not undefined and check each entry in data
-        Object.entries(data).forEach(([key, value]) => {
+        Object.entries(data.uid).forEach(([key, value]) => {
             console.log(`Key: ${key}, Value:`, value);
             const requestText = value.request || "No request details"; // Use the request field or default text
             const statusText = value.status || "Pending"; // Default status
@@ -631,7 +629,7 @@ async function showRequests(resourceId) {
 async function approveRequest(resourceId, requestId) {
     console.log(`Approving request: ${requestId}`);
     try {
-        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}/${requestId}.json`, {
+        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests${resourceId}/${requestId}.json`, {
             method: "PATCH",
             body: JSON.stringify({ status: "approved" }),
             headers: { "Content-Type": "application/json" }
@@ -646,7 +644,7 @@ async function approveRequest(resourceId, requestId) {
 async function rejectRequest(resourceId, requestId) {
     console.log(`Rejecting request: ${requestId}`);
     try {
-        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests/${resourceId}/${requestId}.json`, {
+        await fetch(`https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app/requests${resourceId}${requestId}.json`, {
             method: "PATCH",
             body: JSON.stringify({ status: "rejected" }),
             headers: { "Content-Type": "application/json" }
@@ -661,5 +659,6 @@ async function rejectRequest(resourceId, requestId) {
   </script>
 </body>
 </html>
+
 
    
