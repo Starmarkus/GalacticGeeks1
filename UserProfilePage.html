@@ -161,6 +161,11 @@
             display: none;
         }
 
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
         .button:hover {
             opacity: 0.8;
         }
@@ -214,6 +219,7 @@
         <button class="button edit-btn" onclick="enableEditing()">Edit</button>
         <button class="button clear-btn" onclick="clearFields()">Clear</button>
         <button class="button save-btn" onclick="saveChanges()">Save</button>
+        <button class="button delete-btn" onclick="deleteAccount()">Delete Account</button> <!-- New Delete Account Button -->
     </div>
 
     <script type="module">
@@ -232,7 +238,7 @@
         // Initialize Firebase
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js';
         import { getAuth, setPersistence, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js';
-        import { getFirestore, doc, getDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js';
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth();
@@ -302,6 +308,35 @@
                     document.querySelector('.save-btn').style.display = 'none';
                 })
                 .catch(error => console.error("Error updating profile:", error));
+        }
+
+        // Function to delete user account
+        function deleteAccount() {
+            const user = auth.currentUser;
+            
+            if (user) {
+                // Delete user data from Firestore first
+                const userRef = doc(db, "users", user.uid);
+                deleteDoc(userRef)
+                    .then(() => {
+                        // After deleting Firestore data, delete the user from Firebase Authentication
+                        user.delete()
+                            .then(() => {
+                                alert("Account deleted successfully.");
+                                window.location.href = "login.html"; // Redirect to login page
+                            })
+                            .catch(error => {
+                                console.error("Error deleting user from Firebase Authentication:", error);
+                                alert("Failed to delete user from Firebase Authentication.");
+                            });
+                    })
+                    .catch(error => {
+                        console.error("Error deleting user from Firestore:", error);
+                        alert("Failed to delete user data from Firestore.");
+                    });
+            } else {
+                console.error("No user is logged in.");
+            }
         }
     </script>
 </body>

@@ -29,10 +29,10 @@
 <body>
     <div class="TempNav">
         <ul>
-        <li><a href="LogInPage.html">Sign Out</a></li>
-        <li><a href="AdminCreateAndDeleteUser.html">Edit Userst</a></li>
-        <li><a href="AdminProfilePage.html">Profile</a></li>
-    </ul>
+            <li><a href="LogInPage.html">Sign Out</a></li>
+            <li><a href="AdminCreateAndDeleteUser.html">Edit Users</a></li>
+            <li><a href="AdminProfilePage.html">Profile</a></li>
+        </ul>
     </div>
     <h1>Admin - Add User</h1>
     <form id="add-user-form">
@@ -152,7 +152,7 @@
                             <td>${user.email}</td>
                             <td>${user.role}</td>
                             <td>
-                                <button onclick="deleteUser('${userId}')">Delete</button>
+                                <button onclick="deleteUser('${userId}', '${user.role}')">Delete</button>
                             </td>
                         `;
                         tbody.appendChild(row);
@@ -162,30 +162,44 @@
         }
 
         // Delete user from Firebase Authentication and Database
-function deleteUser(userId) {
+function deleteUser(userId, role) {
     const userRef = db.ref('users/' + userId);
-    userRef.once('value', snapshot => {
-        const user = snapshot.val();
-        if (user) {
-            // Delete the user from Firebase Authentication
-            const userAuth = auth.getUser(user.uid);
-            userAuth.delete()
-                .then(() => {
-                    // If successful, delete from the Realtime Database
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+        // Check if the current user is an admin
+        db.ref('users/' + currentUser.uid).once('value', snapshot => {
+            const currentUserData = snapshot.val();
+            if (currentUserData && currentUserData.role === 'admin') {
+                // Admin can delete any user from the database
+                userRef.remove().then(() => {
+                    alert('User deleted from Database!');
+                    loadUsers(); // Reload users
+                }).catch(error => {
+                    console.error('Error deleting user from Database:', error);
+                    alert('Failed to delete user from Database.');
+                });
+            } else if (currentUser.uid === userId) {
+                // Regular users can delete themselves from both Authentication and Database
+                currentUser.delete().then(() => {
                     userRef.remove().then(() => {
                         alert('User deleted successfully from Authentication and Database!');
-                        loadUsers(); // Reload users
+                        window.location.href = 'LogInPage.html'; // Redirect to login page
                     }).catch(error => {
                         console.error('Error deleting user from Database:', error);
                         alert('Failed to delete user from Database.');
                     });
-                })
-                .catch(error => {
+                }).catch(error => {
                     console.error('Error deleting user from Authentication:', error);
                     alert('Failed to delete user from Authentication.');
                 });
-        }
-    });
+            } else {
+                alert('You can only delete your own profile!');
+            }
+        });
+    } else {
+        alert('No authenticated user found.');
+    }
 }
 
 
