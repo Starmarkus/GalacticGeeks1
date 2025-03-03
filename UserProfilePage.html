@@ -210,16 +210,22 @@
     </div>
 
     <div class="button-container">
-        <button class="button back-btn" onclick="goBack()">Back</button>
+        <button class="button back-btn" onclick="goBack()" style="display: none;">Back</button>
         <button class="button edit-btn" onclick="enableEditing()">Edit</button>
-        <button class="button clear-btn" onclick="clearFields()">Clear</button>
-        <button class="button save-btn" onclick="saveChanges()">Save</button>
+        <button class="button clear-btn" onclick="clearFields()" style="display: none;">Clear</button>
+        <button class="button save-btn" onclick="saveChanges()" style="display: none;">Save</button>
         <button class="button delete-btn" onclick="deleteAccount()">Delete Account</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
+        import { 
+            getAuth, 
+            onAuthStateChanged, 
+            deleteUser, 
+            updateEmail, 
+            sendEmailVerification 
+        } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
         import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
     
         const firebaseConfig = {
@@ -237,89 +243,152 @@
         const auth = getAuth(app);
         const database = getDatabase(app);
     
-        window.enableEditing = function() {
+        // Enable Editing
+        window.enableEditing = function () {
+            window.originalValues = {
+                firstName: document.getElementById("firstName").value,
+                lastName: document.getElementById("lastName").value,
+                email: document.getElementById("email").value,
+            };
+    
             document.getElementById("firstName").disabled = false;
             document.getElementById("lastName").disabled = false;
             document.getElementById("email").disabled = false;
-            document.querySelector(".save-btn").style.display = 'inline-block';
-            document.querySelector(".clear-btn").style.display = 'inline-block';
-            document.querySelector(".edit-btn").style.display = 'none';
+    
+            document.querySelector(".save-btn").style.display = "inline-block";
+            document.querySelector(".clear-btn").style.display = "inline-block";
+            document.querySelector(".back-btn").style.display = "inline-block";
+            document.querySelector(".edit-btn").style.display = "none";
         };
     
-        window.saveChanges = function() {
+        // Save Changes
+        window.saveChanges = function () {
             const user = auth.currentUser;
             if (user) {
                 const firstName = document.getElementById("firstName").value;
                 const lastName = document.getElementById("lastName").value;
-                const email = document.getElementById("email").value;
+                const newEmail = document.getElementById("email").value;
+                const userRef = ref(database, "users/" + user.uid);
     
-                const userRef = ref(database, 'users/' + user.uid);
-                update(userRef, {
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: email,
-                }).then(() => {
-                    alert("Profile updated successfully!");
-                    document.getElementById("firstName").disabled = true;
-                    document.getElementById("lastName").disabled = true;
-                    document.getElementById("email").disabled = true;
-                    document.querySelector(".save-btn").style.display = 'none';
-                    document.querySelector(".clear-btn").style.display = 'none';
-                    document.querySelector(".edit-btn").style.display = 'inline-block';
-                }).catch(error => {
-                    console.error("Error updating user data:", error);
-                });
+                // If email is changed, send a verification email first
+                if (newEmail !== user.email) {
+                    sendEmailVerification(user)
+                        .then(() => {
+                            alert("A verification email has been sent. Please verify your email and then refresh this page.");
+                            localStorage.setItem("pendingEmailUpdate", newEmail);
+                        })
+                        .catch(error => {
+                            console.error("Error sending email verification:", error);
+                            alert("Failed to send verification email: " + error.message);
+                        });
+                }
+    
+                // Update the first & last name in the database immediately
+                update(userRef, { firstName, lastName })
+                    .then(() => console.log("User details updated in database."))
+                    .catch(error => console.error("Error updating user data:", error));
+    
+                document.getElementById("firstName").disabled = true;
+                document.getElementById("lastName").disabled = true;
+                document.getElementById("email").disabled = true;
+    
+                document.querySelector(".save-btn").style.display = "none";
+                document.querySelector(".clear-btn").style.display = "none";
+                document.querySelector(".back-btn").style.display = "none";
+                document.querySelector(".edit-btn").style.display = "inline-block";
             }
         };
     
-        window.clearFields = function() {
+        // Check if the email is verified, then update the email in Firebase Authentication
+        function checkAndUpdateEmail() {
+            const user = auth.currentUser;
+            const pendingEmail = localStorage.getItem("pendingEmailUpdate");
+    
+            if (user && user.emailVerified && pendingEmail) {
+                updateEmail(user, pendingEmail)
+                    .then(() => {
+                        console.log("Email updated in Firebase Authentication.");
+                        
+                        // Also update email in Firebase Realtime Database
+                        const userRef = ref(database, "users/" + user.uid);
+                        update(userRef, { email: pendingEmail })
+                            .then(() => console.log("Email updated in database."))
+                            .catch(error => console.error("Error updating email in database:", error));
+    
+                        alert("Email updated successfully!");
+                        localStorage.removeItem("pendingEmailUpdate");
+                    })
+                    .catch(error => {
+                        console.error("Error updating email:", error);
+                        alert("Failed to update email: " + error.message);
+                    });
+            }
+        }
+    
+        // Clear Fields
+        window.clearFields = function () {
             document.getElementById("firstName").value = "";
             document.getElementById("lastName").value = "";
             document.getElementById("email").value = "";
         };
     
-        window.deleteAccount = function() {
+        // Go Back (Revert Changes)
+        window.goBack = function () {
+            document.getElementById("firstName").value = window.originalValues.firstName;
+            document.getElementById("lastName").value = window.originalValues.lastName;
+            document.getElementById("email").value = window.originalValues.email;
+    
+            document.getElementById("firstName").disabled = true;
+            document.getElementById("lastName").disabled = true;
+            document.getElementById("email").disabled = true;
+    
+            document.querySelector(".save-btn").style.display = "none";
+            document.querySelector(".clear-btn").style.display = "none";
+            document.querySelector(".back-btn").style.display = "none";
+            document.querySelector(".edit-btn").style.display = "inline-block";
+        };
+    
+        // Delete Account
+        window.deleteAccount = function () {
             const user = auth.currentUser;
             if (user) {
-                const userRef = ref(database, 'users/' + user.uid);
-                update(userRef, {
-                    firstName: null,
-                    lastName: null,
-                    email: null,
-                }).then(() => {
-                    deleteUser(user).then(() => {
-                        alert("Account deleted successfully.");
-                        window.location.href = "LoginPage.html";
-                    }).catch((error) => {
-                        console.error("Error deleting user:", error);
-                    });
-                }).catch((error) => {
-                    console.error("Error removing user data:", error);
-                });
+                const userRef = ref(database, "users/" + user.uid);
+                update(userRef, { firstName: null, lastName: null, email: null })
+                    .then(() => {
+                        deleteUser(user)
+                            .then(() => {
+                                alert("Account deleted successfully.");
+                                window.location.href = "LoginPage.html";
+                            })
+                            .catch(error => {
+                                console.error("Error deleting user:", error);
+                                alert("Error deleting account: " + error.message);
+                            });
+                    })
+                    .catch(error => console.error("Error removing user data:", error));
             }
         };
     
-        window.goBack = function() {
-            window.history.back();
-        };
-    
+        // Fetch and Display User Data
         document.addEventListener("DOMContentLoaded", () => {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    const userRef = ref(database, 'users/' + user.uid);
-                    get(userRef).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const userData = snapshot.val();
-                            document.getElementById("usernameDisplay").textContent = userData.firstName + " " + userData.lastName;
-                            document.getElementById("firstName").value = userData.firstName;
-                            document.getElementById("lastName").value = userData.lastName;
-                            document.getElementById("email").value = userData.email;
-                        } else {
-                            console.log("No data found for user.");
-                        }
-                    }).catch(error => {
-                        console.error("Error fetching user data:", error);
-                    });
+                    checkAndUpdateEmail(); // Check if the user verified their email and update it
+                    
+                    const userRef = ref(database, "users/" + user.uid);
+                    get(userRef)
+                        .then(snapshot => {
+                            if (snapshot.exists()) {
+                                const userData = snapshot.val();
+                                document.getElementById("usernameDisplay").textContent = `${userData.firstName} ${userData.lastName}`;
+                                document.getElementById("firstName").value = userData.firstName;
+                                document.getElementById("lastName").value = userData.lastName;
+                                document.getElementById("email").value = user.email;
+                            } else {
+                                console.log("No data found for user.");
+                            }
+                        })
+                        .catch(error => console.error("Error fetching user data:", error));
                 } else {
                     window.location.href = "LoginPage.html";
                 }
@@ -330,4 +399,5 @@
     
 
 </body>
+
 </html>
