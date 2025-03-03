@@ -551,8 +551,8 @@
             });
         });
 
-        // Fetch user requests for a given resource
-async function fetchUserRequests(resourceId) {
+       // Fetch user requests for a given resource
+       async function fetchUserRequests(resourceId) {
     const modal = document.getElementById("userRequestModal");
     const modalContent = document.getElementById("modalContent");
     modalContent.innerHTML = ""; // Clear previous content
@@ -568,6 +568,9 @@ async function fetchUserRequests(resourceId) {
 
         const data = await response.json();
 
+        //  Check the structure of the data from Firebase
+        console.log("Fetched data:", data);
+
         // Check if data is empty or null
         if (!data || Object.keys(data).length === 0) {
             console.log("No user requests found.");
@@ -575,7 +578,7 @@ async function fetchUserRequests(resourceId) {
                 <table border="1">
                     <tr>
                         <th>Resource Requested</th>
-                        <th>Status</th>
+                        <th>Action</th>
                     </tr>
                     <tr>
                         <td colspan="2">No user requests found.</td>
@@ -592,11 +595,16 @@ async function fetchUserRequests(resourceId) {
                     <th>Status</th>
                 </tr>`;
 
+        // Ensure requestText is not undefined and check each entry in data
         Object.entries(data).forEach(([key, value]) => {
-            const requestText = value.request || "No request details";
+            console.log(`Key: ${key}, Value:`, value);
+            const requestText = value.request || "No request details"; // Use the request field or default text
+            const statusText = value.status || "Pending"; // Default status
+
             tableHtml += `
                 <tr>
                     <td>${requestText}</td>
+                    <td>${statusText}</td>
                     <td>
                         <button onclick="approveRequest('${resourceId}', '${key}')">Approve</button>
                         <button onclick="rejectRequest('${resourceId}', '${key}')">Reject</button>
