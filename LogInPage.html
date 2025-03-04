@@ -75,7 +75,7 @@ onAuthStateChanged(auth, (user) => {
                 const userData = snapshot.val();
                 const role = userData.role || "user";
 
-                // Redirect based on role
+                // Redirect based on role testing the comment 
                 if (window.location.pathname.includes("LogInPage.html")) {
                     if (role === "admin") {
                         window.location.href = "AdminDashboardPage.html";
