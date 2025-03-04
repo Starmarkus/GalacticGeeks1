@@ -74,7 +74,7 @@ if (window.location.pathname.includes("LogInPage.html")) {
         console.error("Sign out error:", error);
     });
 }
-
+/*
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (window.location.pathname.includes("LogInPage.html")) {
@@ -103,6 +103,28 @@ onAuthStateChanged(auth, async (user) => {
             sessionStorage.setItem("loginRedirected", "true");
             window.location.href = "LogInPage.html";
         }
+    }
+});
+
+*/
+
+// Handle user login status
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        const userRef = ref(database, 'users/' + user.uid);
+        get(userRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                const role = userData.role || "user";
+
+                // Redirect based on role
+                if (role === "admin" && !window.location.pathname.includes("AdminDashboardPage.html")) {
+                    window.location.href = "AdminDashboardPage.html";
+                } else if (role !== "admin" && !window.location.pathname.includes("UserDashboardPage.html")) {
+                    window.location.href = "UserDashboardPage.html";
+                }
+            }
+        });
     }
 });
 
