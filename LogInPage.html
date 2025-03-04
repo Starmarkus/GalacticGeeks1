@@ -91,27 +91,6 @@ onAuthStateChanged(auth, (user) => {
         }
     }
 });
-
-// Logout function
-function logout() {
-    signOut(auth).then(() => {
-        window.location.href = "LoginPage.html";
-    }).catch((error) => {
-        console.error("Logout error:", error);
-    });
-}
-
-// Attach logout function to logout button if it exists
-document.addEventListener("DOMContentLoaded", () => {
-    const logoutBtn = document.getElementById("logoutButton");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", logout);
-    }
-});
-
-        
-
-
         // Sign-in function
         async function signInUser(email, password) {
     try {
