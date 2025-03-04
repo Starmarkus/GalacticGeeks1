@@ -66,9 +66,14 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
-// Keep user logged in across sessions
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     if (user) {
+        if (window.location.pathname.includes("LogInPage.html")) {
+            // If user is on the login page, sign them out
+            await signOut(auth);
+            return; // Prevent further execution
+        }
+
         const userRef = ref(database, 'users/' + user.uid);
         get(userRef).then((snapshot) => {
             if (snapshot.exists()) {
@@ -91,6 +96,7 @@ onAuthStateChanged(auth, (user) => {
         }
     }
 });
+
 
         // Sign-in function
         async function signInUser(email, password) {
