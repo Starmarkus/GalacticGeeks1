@@ -43,101 +43,102 @@
 
     <div id="notification" class="notification"></div>
 
-    <script type="module">import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
+import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
+
+// Firebase configuration
+const firebaseConfig = {
+    apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+    authDomain: "system-galacticgeeks.firebaseapp.com",
+    databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "system-galacticgeeks",
+    storageBucket: "system-galacticgeeks.appspot.com",
+    messagingSenderId: "835850762785",
+    appId: "1:835850762785:web:d2e42efe2422dac089c160",
+    measurementId: "G-5S4L5M5GG5"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const database = getDatabase(app);
+
+// **Force Logout When Visiting Login Page**
+if (window.location.pathname.includes("LogInPage.html")) {
+    signOut(auth).then(() => {
+        console.log("User signed out.");
+        sessionStorage.clear(); // Remove session data
+        localStorage.clear(); // Remove any persistent auth data
+    }).catch((error) => {
+        console.error("Logout error:", error);
+    });
+}
+
+// **Sign-in function (only runs when login button is clicked)**
+async function signInUser(email, password) {
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        showNotification("Login successful!", false);
+
+        // Wait before redirecting
+        setTimeout(() => {
+            checkUserRoleAndRedirect(user.uid);
+        }, 2000);
         
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
-            authDomain: "system-galacticgeeks.firebaseapp.com",
-            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "system-galacticgeeks",
-            storageBucket: "system-galacticgeeks.appspot.com",
-            messagingSenderId: "835850762785",
-            appId: "1:835850762785:web:d2e42efe2422dac089c160",
-            measurementId: "G-5S4L5M5GG5"
-        };
-        
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const database = getDatabase(app);
-        
-        // **DO NOT Redirect on Login Page Automatically**
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                if (!window.location.pathname.includes("LogInPage.html")) {
-                    // Redirect only if NOT on the login page
-                    checkUserRoleAndRedirect(user.uid);
-                }
+    } catch (error) {
+        console.error("Login error:", error.message);
+        showNotification("Error: " + error.message, true);
+    }
+}
+
+// **Check user role and redirect**
+async function checkUserRoleAndRedirect(userId) {
+    try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const role = userData.role || "user";
+
+            // Redirect based on role
+            if (role === "admin") {
+                window.location.href = "AdminDashboardPage.html";
+            } else {
+                window.location.href = "UserDashboardPage.html";
             }
-        });
-        
-        // Function to check user role and redirect
-        async function checkUserRoleAndRedirect(userId) {
-            try {
-                const userRef = ref(database, 'users/' + userId);
-                const snapshot = await get(userRef);
-                if (snapshot.exists()) {
-                    const userData = snapshot.val();
-                    const role = userData.role || "user";
-        
-                    // Redirect based on role
-                    if (role === "admin") {
-                        window.location.href = "AdminDashboardPage.html";
-                    } else {
-                        window.location.href = "UserDashboardPage.html";
-                    }
-                } else {
-                    showNotification("Error: User data not found.", true);
-                }
-            } catch (error) {
-                console.error("Role check error:", error.message);
-            }
+        } else {
+            showNotification("Error: User data not found.", true);
         }
-        
-        // **Sign-in function (only runs when login button is clicked)**
-        async function signInUser(email, password) {
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                const user = userCredential.user;
-        
-                showNotification("Login successful!", false);
-        
-                // Wait before redirecting
-                setTimeout(() => {
-                    checkUserRoleAndRedirect(user.uid);
-                }, 2000);
-                
-            } catch (error) {
-                console.error("Login error:", error.message);
-                showNotification("Error: " + error.message, true);
-            }
-        }
-        
-        // **Handle login form submission**
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            signInUser(email, password);
-        });
-        
-        // **Show notification function**
-        function showNotification(message, isError = false) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.remove('error');
-            if (isError) {
-                notification.classList.add('error');
-            }
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);
-        }
-        
+    } catch (error) {
+        console.error("Role check error:", error.message);
+    }
+}
+
+// **Handle login form submission**
+document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    signInUser(email, password);
+});
+
+// **Show notification function**
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.classList.remove('error');
+    if (isError) {
+        notification.classList.add('error');
+    }
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 5000);
+}
     </script>
 
 </body>
