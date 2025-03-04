@@ -111,6 +111,11 @@ onAuthStateChanged(auth, async (user) => {
 // Handle user login status
 onAuthStateChanged(auth, (user) => {
     if (user) {
+        // **Prevent redirection if already on the login page**
+        if (window.location.pathname.includes("LogInPage.html")) {
+            return;
+        }
+
         const userRef = ref(database, 'users/' + user.uid);
         get(userRef).then((snapshot) => {
             if (snapshot.exists()) {
@@ -118,9 +123,9 @@ onAuthStateChanged(auth, (user) => {
                 const role = userData.role || "user";
 
                 // Redirect based on role
-                if (role === "admin" && !window.location.pathname.includes("AdminDashboardPage.html")) {
+                if (role === "admin") {
                     window.location.href = "AdminDashboardPage.html";
-                } else if (role !== "admin" && !window.location.pathname.includes("UserDashboardPage.html")) {
+                } else {
                     window.location.href = "UserDashboardPage.html";
                 }
             }
