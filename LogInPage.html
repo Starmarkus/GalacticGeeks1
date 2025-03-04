@@ -66,6 +66,15 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
+// **Force Logout When Visiting Login Page**
+if (window.location.pathname.includes("LogInPage.html")) {
+    signOut(auth).then(() => {
+        console.log("User signed out on login page.");
+    }).catch((error) => {
+        console.error("Sign out error:", error);
+    });
+}
+
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         if (window.location.pathname.includes("LogInPage.html")) {
