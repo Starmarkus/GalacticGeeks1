@@ -380,10 +380,7 @@
                 <div class="detail-box"><input type="text" id="lastName" disabled></div>
             </div>
     
-            <div class="detail-row">
-                <div class="detail-label"><h1 style="color: white;">Email:</h1></div>
-                <div class="detail-box"><input type="text" id="email" disabled></div>
-            </div>
+            
         </div>
     
         <div class="button-container">
@@ -418,12 +415,12 @@
                 window.originalValues = {
                     firstName: document.getElementById("firstName").value,
                     lastName: document.getElementById("lastName").value,
-                    email: document.getElementById("email").value,
+                    
                 };
     
                 document.getElementById("firstName").disabled = false;
                 document.getElementById("lastName").disabled = false;
-                document.getElementById("email").disabled = false;
+                
     
                 document.querySelector(".save-btn").style.display = "inline-block";
                 document.querySelector(".clear-btn").style.display = "inline-block";
@@ -436,21 +433,21 @@
                 if (user) {
                     const firstName = document.getElementById("firstName").value;
                     const lastName = document.getElementById("lastName").value;
-                    const newEmail = document.getElementById("email").value;
+                    
     
                     const userRef = ref(database, "users/" + user.uid);
                     
                     update(userRef, {
                         firstName: firstName,
                         lastName: lastName,
-                        email: newEmail,
+                        
                     }).then(() => {
                         updateEmail(user, newEmail)
                             .then(() => {
                                 alert("Profile updated successfully!");
                                 document.getElementById("firstName").disabled = true;
                                 document.getElementById("lastName").disabled = true;
-                                document.getElementById("email").disabled = true;
+                                
     
                                 document.querySelector(".save-btn").style.display = "none";
                                 document.querySelector(".clear-btn").style.display = "none";
@@ -470,17 +467,17 @@
             window.clearFields = function () {
                 document.getElementById("firstName").value = "";
                 document.getElementById("lastName").value = "";
-                document.getElementById("email").value = "";
+                
             };
     
             window.goBack = function () {
                 document.getElementById("firstName").value = window.originalValues.firstName;
                 document.getElementById("lastName").value = window.originalValues.lastName;
-                document.getElementById("email").value = window.originalValues.email;
+                
     
                 document.getElementById("firstName").disabled = true;
                 document.getElementById("lastName").disabled = true;
-                document.getElementById("email").disabled = true;
+               
     
                 document.querySelector(".save-btn").style.display = "none";
                 document.querySelector(".clear-btn").style.display = "none";
@@ -495,7 +492,7 @@
                     update(userRef, {
                         firstName: null,
                         lastName: null,
-                        email: null,
+                        
                     }).then(() => {
                         deleteUser(user).then(() => {
                             alert("Account deleted successfully.");
