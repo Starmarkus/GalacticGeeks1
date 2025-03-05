@@ -173,185 +173,372 @@
 </head>
 <body>
 
-    <div class="TempNav">
-        <ul>
-            <li><a href="LogInPage.html">Sign Out</a></li>
-            <li><a href="UserDashboardPage.html">Dashboard</a></li>
-        </ul>
-    </div>
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
 
-    <div class="centerUserCardDiv">
-        <div class="rounded-rectangle">
-            <div class="icon">👤</div>
-            <div class="text-container">
-                <div class="username" id="usernameDisplay">Loading...</div>
-                <div class="welcome-message">Welcome to User Profile</div>
+    <style>
+        .centerUserCardDiv {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rounded-rectangle {
+            width: 80%;
+            height: 150px;
+            background-color: #3498db; 
+            border-radius: 60px; 
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        .icon {
+            font-size: 80px;
+            margin-right: 30px;
+        }
+
+        .text-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            flex: 1;
+        }
+
+        .username {
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        .welcome-message {
+            font-size: 25px;
+        }
+
+        .heading {
+            font-size: 40px;
+            font-weight: bold;
+            padding-right: 8%;
+            margin-left: auto;
+        }
+
+        .user-detail-container {
+            width: 60%;
+            margin: 30px auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            width: 120px;
+        }
+
+        .detail-box {
+            flex: 1;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .detail-box input {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: transparent;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .phone-input {
+            display: flex;
+            gap: 5px;
+        }
+
+        .phone-box {
+            width: 50px;
+            text-align: center;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .phone-number {
+            width: 100px;
+            height: 35px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+        }
+
+        .button-container {
+            width: 60%;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin: 20px auto 0;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .edit-btn {
+            background-color: #f1c40f;
+            color: white;
+        }
+
+        .back-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+
+        .clear-btn {
+            background-color: #e74c3c;
+            color: white;
+            display: none; /* Initially hidden */
+        }
+
+        .save-btn {
+            background-color: #2ecc71;
+            color: white;
+            display: none;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+
+    <body>
+
+        <div class="TempNav">
+            <ul>
+                <li><a href="LogInPage.html">Sign Out</a></li>
+                <li><a href="UserDashboardPage.html">Dashboard</a></li>
+            </ul>
+        </div>
+    
+        <div class="centerUserCardDiv">
+            <div class="rounded-rectangle">
+                <div class="icon">👤</div>
+                <div class="text-container">
+                    <div class="username" id="usernameDisplay">Loading...</div>
+                    <div class="welcome-message">Welcome to User Profile</div>
+                </div>
+    
+                <div class="heading">Welcome To User Profile</div>
             </div>
-
-            <div class="heading">Welcome To User Profile</div>
         </div>
-    </div>
-
-    <div class="user-detail-container">
-        <div class="detail-row">
-            <div class="detail-label"><h1 style="color: white;">First Name:</h1></div>
-            <div class="detail-box"><input type="text" id="firstName" disabled></div>
+    
+        <div class="user-detail-container">
+            <div class="detail-row">
+                <div class="detail-label"><h1 style="color: white;">First Name:</h1></div>
+                <div class="detail-box"><input type="text" id="firstName" disabled></div>
+            </div>
+    
+            <div class="detail-row">
+                <div class="detail-label"><h1 style="color: white;">Last Name:</h1></div>
+                <div class="detail-box"><input type="text" id="lastName" disabled></div>
+            </div>
+    
+            <div class="detail-row">
+                <div class="detail-label"><h1 style="color: white;">Email:</h1></div>
+                <div class="detail-box"><input type="text" id="email" disabled></div>
+            </div>
         </div>
-
-        <div class="detail-row">
-            <div class="detail-label"><h1 style="color: white;">Last Name:</h1></div>
-            <div class="detail-box"><input type="text" id="lastName" disabled></div>
+    
+        <div class="button-container">
+            <button class="button back-btn" onclick="goBack()" style="display: none;">Back</button>
+            <button class="button edit-btn" onclick="enableEditing()">Edit</button>
+            <button class="button clear-btn" onclick="clearFields()" style="display: none;">Clear</button>
+            <button class="button save-btn" onclick="saveChanges()" style="display: none;">Save</button>
+            <button class="button delete-btn" onclick="deleteAccount()">Delete Account</button>
         </div>
-
-        
-    </div>
-
-    <div class="button-container">
-        <button class="button back-btn" onclick="goBack()" style="display: none;">Back</button>
-        <button class="button edit-btn" onclick="enableEditing()">Edit</button>
-        <button class="button clear-btn" onclick="clearFields()" style="display: none;">Clear</button>
-        <button class="button save-btn" onclick="saveChanges()" style="display: none;">Save</button>
-        <button class="button delete-btn" onclick="deleteAccount()">Delete Account</button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, deleteUser, updateEmail } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
-        import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
-            authDomain: "system-galacticgeeks.firebaseapp.com",
-            databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "system-galacticgeeks",
-            storageBucket: "system-galacticgeeks.appspot.com",
-            messagingSenderId: "835850762785",
-            appId: "1:835850762785:web:d2e42efe2422dac089c160",
-            measurementId: "G-5S4L5M5GG5"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const database = getDatabase(app);
-
-        window.enableEditing = function () {
-            window.originalValues = {
-                firstName: document.getElementById("firstName").value,
-                lastName: document.getElementById("lastName").value,
-               
+    
+        <script type="module">
+            import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
+            import { getAuth, onAuthStateChanged, deleteUser, updateEmail } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
+            import { getDatabase, ref, get, update } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
+    
+            const firebaseConfig = {
+                apiKey: "AIzaSyCXGnKdWdVmi2Z98DCZSYKV_nHx9zH7xRg",
+                authDomain: "system-galacticgeeks.firebaseapp.com",
+                databaseURL: "https://system-galacticgeeks-default-rtdb.europe-west1.firebasedatabase.app",
+                projectId: "system-galacticgeeks",
+                storageBucket: "system-galacticgeeks.appspot.com",
+                messagingSenderId: "835850762785",
+                appId: "1:835850762785:web:d2e42efe2422dac089c160",
+                measurementId: "G-5S4L5M5GG5"
             };
-
-            document.getElementById("firstName").disabled = false;
-            document.getElementById("lastName").disabled = false;
-            
-
-            document.querySelector(".save-btn").style.display = "inline-block";
-            document.querySelector(".clear-btn").style.display = "inline-block";
-            document.querySelector(".back-btn").style.display = "inline-block";
-            document.querySelector(".edit-btn").style.display = "none";
-        };
-
-        window.saveChanges = function () {
-            const user = auth.currentUser;
-            if (user) {
-                const firstName = document.getElementById("firstName").value;
-                const lastName = document.getElementById("lastName").value;
-                
-
-                const userRef = ref(database, "users/" + user.uid);
-                
-                update(userRef, {
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: newEmail,
-                }).then(() => {
-                    updateEmail(user, newEmail)
-                        .then(() => {
-                            alert("Profile updated successfully!");
-                            document.getElementById("firstName").disabled = true;
-                            document.getElementById("lastName").disabled = true;
-                            
-
-                            document.querySelector(".save-btn").style.display = "none";
-                            document.querySelector(".clear-btn").style.display = "none";
-                            document.querySelector(".back-btn").style.display = "none";
-                            document.querySelector(".edit-btn").style.display = "inline-block";
-                        })
-                        .catch(error => {
-                            console.error("Error updating email:", error);
-                            alert("Failed to update email: " + error.message);
-                        });
-                }).catch(error => {
-                    console.error("Error updating user data:", error);
-                });
-            }
-        };
-
-        window.clearFields = function () {
-            document.getElementById("firstName").value = "";
-            document.getElementById("lastName").value = "";
-           
-        };
-
-        window.goBack = function () {
-            document.getElementById("firstName").value = window.originalValues.firstName;
-            document.getElementById("lastName").value = window.originalValues.lastName;
-            
-
-            document.getElementById("firstName").disabled = true;
-            document.getElementById("lastName").disabled = true;
-            
-
-            document.querySelector(".save-btn").style.display = "none";
-            document.querySelector(".clear-btn").style.display = "none";
-            document.querySelector(".back-btn").style.display = "none";
-            document.querySelector(".edit-btn").style.display = "inline-block";
-        };
-
-        window.deleteAccount = function () {
-            const user = auth.currentUser;
-            if (user) {
-                const userRef = ref(database, "users/" + user.uid);
-                update(userRef, {
-                    firstName: null,
-                    lastName: null,
-                    email: null,
-                }).then(() => {
-                    deleteUser(user).then(() => {
-                        alert("Account deleted successfully.");
-                        window.location.href = "LoginPage.html";
-                    }).catch((error) => {
-                        console.error("Error deleting user:", error);
+    
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            const database = getDatabase(app);
+    
+            window.enableEditing = function () {
+                window.originalValues = {
+                    firstName: document.getElementById("firstName").value,
+                    lastName: document.getElementById("lastName").value,
+                    email: document.getElementById("email").value,
+                };
+    
+                document.getElementById("firstName").disabled = false;
+                document.getElementById("lastName").disabled = false;
+                document.getElementById("email").disabled = false;
+    
+                document.querySelector(".save-btn").style.display = "inline-block";
+                document.querySelector(".clear-btn").style.display = "inline-block";
+                document.querySelector(".back-btn").style.display = "inline-block";
+                document.querySelector(".edit-btn").style.display = "none";
+            };
+    
+            window.saveChanges = function () {
+                const user = auth.currentUser;
+                if (user) {
+                    const firstName = document.getElementById("firstName").value;
+                    const lastName = document.getElementById("lastName").value;
+                    const newEmail = document.getElementById("email").value;
+    
+                    const userRef = ref(database, "users/" + user.uid);
+                    
+                    update(userRef, {
+                        firstName: firstName,
+                        lastName: lastName,
+                        email: newEmail,
+                    }).then(() => {
+                        updateEmail(user, newEmail)
+                            .then(() => {
+                                alert("Profile updated successfully!");
+                                document.getElementById("firstName").disabled = true;
+                                document.getElementById("lastName").disabled = true;
+                                document.getElementById("email").disabled = true;
+    
+                                document.querySelector(".save-btn").style.display = "none";
+                                document.querySelector(".clear-btn").style.display = "none";
+                                document.querySelector(".back-btn").style.display = "none";
+                                document.querySelector(".edit-btn").style.display = "inline-block";
+                            })
+                            .catch(error => {
+                                console.error("Error updating email:", error);
+                                alert("Failed to update email: " + error.message);
+                            });
+                    }).catch(error => {
+                        console.error("Error updating user data:", error);
                     });
-                }).catch((error) => {
-                    console.error("Error removing user data:", error);
-                });
-            }
-        };
-
-        document.addEventListener("DOMContentLoaded", () => {
-            onAuthStateChanged(auth, (user) => {
+                }
+            };
+    
+            window.clearFields = function () {
+                document.getElementById("firstName").value = "";
+                document.getElementById("lastName").value = "";
+                document.getElementById("email").value = "";
+            };
+    
+            window.goBack = function () {
+                document.getElementById("firstName").value = window.originalValues.firstName;
+                document.getElementById("lastName").value = window.originalValues.lastName;
+                document.getElementById("email").value = window.originalValues.email;
+    
+                document.getElementById("firstName").disabled = true;
+                document.getElementById("lastName").disabled = true;
+                document.getElementById("email").disabled = true;
+    
+                document.querySelector(".save-btn").style.display = "none";
+                document.querySelector(".clear-btn").style.display = "none";
+                document.querySelector(".back-btn").style.display = "none";
+                document.querySelector(".edit-btn").style.display = "inline-block";
+            };
+    
+            window.deleteAccount = function () {
+                const user = auth.currentUser;
                 if (user) {
                     const userRef = ref(database, "users/" + user.uid);
-                    get(userRef).then((snapshot) => {
-                        if (snapshot.exists()) {
-                            const userData = snapshot.val();
-                            document.getElementById("usernameDisplay").textContent = userData.firstName + " " + userData.lastName;
-                            document.getElementById("firstName").value = userData.firstName;
-                            document.getElementById("lastName").value = userData.lastName;
-                            
-                        } else {
-                            console.log("No data found for user.");
-                        }
-                    }).catch(error => {
-                        console.error("Error fetching user data:", error);
+                    update(userRef, {
+                        firstName: null,
+                        lastName: null,
+                        email: null,
+                    }).then(() => {
+                        deleteUser(user).then(() => {
+                            alert("Account deleted successfully.");
+                            window.location.href = "LoginPage.html";
+                        }).catch((error) => {
+                            console.error("Error deleting user:", error);
+                        });
+                    }).catch((error) => {
+                        console.error("Error removing user data:", error);
                     });
-                } else {
-                    window.location.href = "LoginPage.html";
                 }
+            };
+    
+            document.addEventListener("DOMContentLoaded", () => {
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        const userRef = ref(database, "users/" + user.uid);
+                        get(userRef).then((snapshot) => {
+                            if (snapshot.exists()) {
+                                const userData = snapshot.val();
+                                document.getElementById("usernameDisplay").textContent = userData.firstName + " " + userData.lastName;
+                                document.getElementById("firstName").value = userData.firstName;
+                                document.getElementById("lastName").value = userData.lastName;
+                                document.getElementById("email").value = userData.email;
+                            } else {
+                                console.log("No data found for user.");
+                            }
+                        }).catch(error => {
+                            console.error("Error fetching user data:", error);
+                        });
+                    } else {
+                        window.location.href = "LoginPage.html";
+                    }
+                });
             });
-        });
-    </script>
+        </script>
+    
+    </body>
+    
+
+</body>
+</html>
+
 
 </body>
 
