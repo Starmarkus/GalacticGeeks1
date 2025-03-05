@@ -44,8 +44,7 @@
     <div id="notification" class="notification"></div>
 
     <script type="module">
-        // Import Firebase modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-auth.js";
 import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/9.19.0/firebase-database.js";
 
@@ -66,109 +65,80 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const database = getDatabase(app);
 
-// Keep user logged in across sessions
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        const userRef = ref(database, 'users/' + user.uid);
-        get(userRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                const userData = snapshot.val();
-                const role = userData.role || "user";
-
-                // Redirect based on role
-                if (window.location.pathname.includes("LoginPage.html")) {
-                    if (role === "admin") {
-                        window.location.href = "AdminDashboardPage.html";
-                    } else {
-                        window.location.href = "UserDashboardPage.html";
-                    }
-                }
-            }
-        });
-    } else {
-        if (!window.location.pathname.includes("LoginPage.html")) {
-            window.location.href = "LoginPage.html";
-        }
-    }
-});
-
-// Logout function
-function logout() {
+// **Force Logout When Visiting Login Page**
+if (window.location.pathname.includes("LogInPage.html")) {
     signOut(auth).then(() => {
-        window.location.href = "LoginPage.html";
+        console.log("User signed out.");
+        sessionStorage.clear(); // Remove session data
+        localStorage.clear(); // Remove any persistent auth data
     }).catch((error) => {
         console.error("Logout error:", error);
     });
 }
 
-// Attach logout function to logout button if it exists
-document.addEventListener("DOMContentLoaded", () => {
-    const logoutBtn = document.getElementById("logoutButton");
-    if (logoutBtn) {
-        logoutBtn.addEventListener("click", logout);
-    }
-});
-
-        
-
-
-        // Sign-in function
-        async function signInUser(email, password) {
+// **Sign-in function (only runs when login button is clicked)**
+async function signInUser(email, password) {
     try {
-        // Sign in with Firebase Authentication
         const userCredential = await signInWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
-        // Retrieve user role from Firebase Database
-        const userRef = ref(database, 'users/' + user.uid);
-        const snapshot = await get(userRef);
+        showNotification("Login successful!", false);
 
-        if (snapshot.exists()) {
-            const userData = snapshot.val();
-            const role = userData.role || "user"; // Default role: user
-
-            showNotification("Login successful!", false); // Show success notification
-            
-            // Delay redirection to allow notification to be seen
-            setTimeout(() => {
-                if (role === "admin") {
-                    window.location.href = "AdminDashboardPage.html";
-                } else {
-                    window.location.href = "UserDashboardPage.html";
-                }
-            }, 2000); // 2 seconds delay
-
-        } else {
-            showNotification("Error: User data not found.", true);
-        }
+        // Wait before redirecting
+        setTimeout(() => {
+            checkUserRoleAndRedirect(user.uid);
+        }, 2000);
+        
     } catch (error) {
         console.error("Login error:", error.message);
         showNotification("Error: " + error.message, true);
     }
 }
 
+// **Check user role and redirect**
+async function checkUserRoleAndRedirect(userId) {
+    try {
+        const userRef = ref(database, 'users/' + userId);
+        const snapshot = await get(userRef);
+        if (snapshot.exists()) {
+            const userData = snapshot.val();
+            const role = userData.role || "user";
 
-        // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            signInUser(email, password);
-        });
-
-        // Show notification (for errors or success messages)
-        function showNotification(message, isError = false) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.classList.remove('error');
-            if (isError) {
-                notification.classList.add('error');
+            // Redirect based on role
+            if (role === "admin") {
+                window.location.href = "AdminDashboardPage.html";
+            } else {
+                window.location.href = "UserDashboardPage.html";
             }
-            notification.style.display = 'block';
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 5000);//Test push pull
+        } else {
+            showNotification("Error: User data not found.", true);
         }
+    } catch (error) {
+        console.error("Role check error:", error.message);
+    }
+}
+
+// **Handle login form submission**
+document.getElementById('loginForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    signInUser(email, password);
+});
+
+// **Show notification function**
+function showNotification(message, isError = false) {
+    const notification = document.getElementById('notification');
+    notification.textContent = message;
+    notification.classList.remove('error');
+    if (isError) {
+        notification.classList.add('error');
+    }
+    notification.style.display = 'block';
+    setTimeout(() => {
+        notification.style.display = 'none';
+    }, 5000);
+}
     </script>
 
 </body>
